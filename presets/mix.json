@@ -1,0 +1,1099 @@
+{
+ "note": "patterns say how the zones move; palettes say which colours. qlight mix pairs them and keeps the pairs the checker accepts. Colour slots: a main, b second, c accent, s soft tint.",
+ "per_pattern": 3,
+ "palettes": [
+  {
+   "slug": "Aurora",
+   "name": "极光",
+   "group": "冷色",
+   "a": "18C8C0",
+   "b": "3B8CFF",
+   "c": "8A6BFF",
+   "s": "CFE8FF"
+  },
+  {
+   "slug": "Sunset",
+   "name": "晚霞",
+   "group": "暖色",
+   "a": "FF6F61",
+   "b": "F2409A",
+   "c": "FFB454",
+   "s": "FFE0C2"
+  },
+  {
+   "slug": "IceRose",
+   "name": "冰玫",
+   "group": "粉紫",
+   "a": "8FD3FF",
+   "b": "FF8FB8",
+   "c": "C9A8FF",
+   "s": "F1E6FF"
+  },
+  {
+   "slug": "GoldIndigo",
+   "name": "鎏金",
+   "group": "暖色",
+   "a": "FFC857",
+   "b": "5B5BFF",
+   "c": "9C8CFF",
+   "s": "FFF0C8"
+  },
+  {
+   "slug": "Neon",
+   "name": "霓虹",
+   "group": "霓虹",
+   "a": "22E0E0",
+   "b": "F23DD0",
+   "c": "8A5CFF",
+   "s": "E6D6FF"
+  },
+  {
+   "slug": "Forest",
+   "name": "森林",
+   "group": "青绿",
+   "a": "2FBF8A",
+   "b": "D8F26B",
+   "c": "3FA7D6",
+   "s": "E4F7C8"
+  },
+  {
+   "slug": "Ember",
+   "name": "炉火",
+   "group": "暖色",
+   "a": "FF9A3D",
+   "b": "FF5A36",
+   "c": "FFD166",
+   "s": "FFE8C2"
+  },
+  {
+   "slug": "MintBerry",
+   "name": "薄荷莓",
+   "group": "霓虹",
+   "a": "5CE6B8",
+   "b": "FF5C8A",
+   "c": "7FB8FF",
+   "s": "E8FFF5"
+  },
+  {
+   "slug": "Sakura",
+   "name": "樱",
+   "group": "粉紫",
+   "a": "FFA6C9",
+   "b": "C79BFF",
+   "c": "FFC2A8",
+   "s": "FFE9F2"
+  },
+  {
+   "slug": "SeaSalt",
+   "name": "海盐",
+   "group": "冷色",
+   "a": "7FE0D4",
+   "b": "6FA8FF",
+   "c": "F2B27A",
+   "s": "E6F7FF"
+  },
+  {
+   "slug": "Cyber",
+   "name": "赛博",
+   "group": "霓虹",
+   "a": "FFE14D",
+   "b": "00D0FF",
+   "c": "FF3D7F",
+   "s": "FFF6C2"
+  },
+  {
+   "slug": "Grape",
+   "name": "葡萄",
+   "group": "粉紫",
+   "a": "A06BFF",
+   "b": "FF6FD8",
+   "c": "5AD1FF",
+   "s": "EBDDFF"
+  },
+  {
+   "slug": "Citrus",
+   "name": "青柠",
+   "group": "青绿",
+   "a": "B6F03C",
+   "b": "FF9F1C",
+   "c": "2EC4B6",
+   "s": "F3FFD0"
+  },
+  {
+   "slug": "Glacier",
+   "name": "冰川",
+   "group": "冷色",
+   "a": "9FD8FF",
+   "b": "4F8CFF",
+   "c": "B8A6FF",
+   "s": "EEF6FF"
+  },
+  {
+   "slug": "Lava",
+   "name": "熔岩",
+   "group": "暖色",
+   "a": "FF3B1F",
+   "b": "FF8A00",
+   "c": "FFD23F",
+   "s": "FFE2B8"
+  },
+  {
+   "slug": "Ocean",
+   "name": "深海",
+   "group": "冷色",
+   "a": "0077FF",
+   "b": "00C2D1",
+   "c": "3A4DFF",
+   "s": "CFEFFF"
+  },
+  {
+   "slug": "Violet",
+   "name": "紫电",
+   "group": "粉紫",
+   "a": "7A3CFF",
+   "b": "D13CFF",
+   "c": "3CA0FF",
+   "s": "E3D4FF"
+  },
+  {
+   "slug": "Matcha",
+   "name": "抹茶",
+   "group": "青绿",
+   "a": "5FD068",
+   "b": "C8E64C",
+   "c": "2FB8A0",
+   "s": "E6F8D2"
+  },
+  {
+   "slug": "Candy",
+   "name": "糖果",
+   "group": "霓虹",
+   "a": "FF4FA3",
+   "b": "4FD8FF",
+   "c": "FFE24F",
+   "s": "FFE3F1"
+  },
+  {
+   "slug": "Dusk",
+   "name": "暮色",
+   "group": "暖色",
+   "a": "FF7A59",
+   "b": "8A5CFF",
+   "c": "FFC46B",
+   "s": "FFDCCB"
+  },
+  {
+   "slug": "Arctic",
+   "name": "极地",
+   "group": "冷色",
+   "a": "5CE1E6",
+   "b": "3D7BFF",
+   "c": "7F9CFF",
+   "s": "E2FBFF"
+  },
+  {
+   "slug": "Peach",
+   "name": "蜜桃",
+   "group": "粉紫",
+   "a": "FF9E80",
+   "b": "FF6FA5",
+   "c": "FFC97A",
+   "s": "FFE9DD"
+  },
+  {
+   "slug": "Toxic",
+   "name": "荧光",
+   "group": "霓虹",
+   "a": "39FF88",
+   "b": "C6FF3D",
+   "c": "00E5FF",
+   "s": "E6FFE9"
+  },
+  {
+   "slug": "Royal",
+   "name": "皇家",
+   "group": "霓虹",
+   "a": "3D5AFE",
+   "b": "FFC400",
+   "c": "E040FB",
+   "s": "E8E6FF"
+  },
+  {
+   "slug": "Phantom",
+   "name": "幻夜",
+   "group": "粉紫",
+   "a": "7B3FE4",
+   "b": "00D2FF",
+   "c": "9B51E0",
+   "s": "E8DFFF"
+  },
+  {
+   "slug": "Synthwave",
+   "name": "电音",
+   "group": "霓虹",
+   "a": "FF007F",
+   "b": "0099FF",
+   "c": "FFE600",
+   "s": "FFE0F0"
+  },
+  {
+   "slug": "Champagne",
+   "name": "香槟",
+   "group": "暖色",
+   "a": "FFC97A",
+   "b": "FF8C42",
+   "c": "8F77E8",
+   "s": "FFF5E6"
+  },
+  {
+   "slug": "Nebula",
+   "name": "星云",
+   "group": "粉紫",
+   "a": "FF5E97",
+   "b": "38E5B0",
+   "c": "7C4DFF",
+   "s": "F2E6FF"
+  },
+  {
+   "slug": "AbyssGlow",
+   "name": "秘境",
+   "group": "青绿",
+   "a": "00FF9D",
+   "b": "0091FF",
+   "c": "1CE5C3",
+   "s": "DCFFF5"
+  },
+  {
+   "slug": "Blaze",
+   "name": "赤焰",
+   "group": "暖色",
+   "a": "FF2E00",
+   "b": "FFA200",
+   "c": "FFD000",
+   "s": "FFE8CC"
+  }
+ ],
+ "patterns": [
+  {
+   "slug": "Counterflow",
+   "name": "对流",
+   "idea": "两排用同三色反向铺色，像两股水流对冲",
+   "cooler": "b",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "CoveringMarquee",
+     "speed": "Slow",
+     "direction": "Forwards",
+     "brightness": 0.7,
+     "colors": "abc"
+    },
+    {
+     "effect": "CoveringMarquee",
+     "speed": "Slow",
+     "direction": "Backwards",
+     "brightness": 0.7,
+     "colors": "cba"
+    },
+    {
+     "effect": "BreathingCycling",
+     "speed": "Slow",
+     "brightness": 0.45,
+     "colors": "ba"
+    }
+   ]
+  },
+  {
+   "slug": "Relay",
+   "name": "接力",
+   "idea": "三个区域同速渐变，颜色各错开一位，一圈一圈往下传",
+   "cooler": "c",
+   "breathing": false,
+   "zones": [
+    {
+     "effect": "Fading",
+     "speed": "Normal",
+     "brightness": 0.68,
+     "colors": "abc"
+    },
+    {
+     "effect": "Fading",
+     "speed": "Normal",
+     "brightness": 0.68,
+     "colors": "bca"
+    },
+    {
+     "effect": "Fading",
+     "speed": "Normal",
+     "brightness": 0.42,
+     "colors": "cab"
+    }
+   ]
+  },
+  {
+   "slug": "Duet",
+   "name": "对答",
+   "idea": "两排同步呼吸，每一次呼吸互换颜色，一问一答",
+   "cooler": "c",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "BreathingCycling",
+     "speed": "Slow",
+     "brightness": 0.66,
+     "colors": "ab"
+    },
+    {
+     "effect": "BreathingCycling",
+     "speed": "Slow",
+     "brightness": 0.66,
+     "colors": "ba"
+    },
+    {
+     "effect": "BreathingCycling",
+     "speed": "Slow",
+     "brightness": 0.4,
+     "colors": "c"
+    }
+   ]
+  },
+  {
+   "slug": "Orbit",
+   "name": "轮转",
+   "idea": "两色各占半圈，底排顺转、侧排逆转，互为镜像",
+   "cooler": "a",
+   "breathing": false,
+   "zones": [
+    {
+     "effect": "TaiChi",
+     "speed": "Slow",
+     "direction": "Forwards",
+     "brightness": 0.68,
+     "colors": "ab"
+    },
+    {
+     "effect": "TaiChi",
+     "speed": "Slow",
+     "direction": "Backwards",
+     "brightness": 0.68,
+     "colors": "ba"
+    },
+    {
+     "effect": "Fading",
+     "speed": "Slow",
+     "brightness": 0.4,
+     "colors": "ac"
+    }
+   ]
+  },
+  {
+   "slug": "RiverStars",
+   "name": "星河",
+   "idea": "底排是缓慢流动的光带，侧排是浅色星点，一条河上面一片星",
+   "cooler": "b",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "Wave",
+     "speed": "Slow",
+     "direction": "Forwards",
+     "brightness": 0.7,
+     "colors": "a"
+    },
+    {
+     "effect": "StarryNight",
+     "speed": "Normal",
+     "brightness": 0.75,
+     "colors": "s"
+    },
+    {
+     "effect": "BreathingCycling",
+     "speed": "Slowest",
+     "brightness": 0.4,
+     "colors": "ba"
+    }
+   ]
+  },
+  {
+   "slug": "Rails",
+   "name": "双轨",
+   "idea": "两种颜色的色块在两排上朝相反方向行进",
+   "cooler": "c",
+   "breathing": false,
+   "zones": [
+    {
+     "effect": "Alternating",
+     "speed": "Normal",
+     "direction": "Forwards",
+     "length": 4,
+     "moving": true,
+     "brightness": 0.65,
+     "colors": "ab"
+    },
+    {
+     "effect": "Alternating",
+     "speed": "Normal",
+     "direction": "Backwards",
+     "length": 4,
+     "moving": true,
+     "brightness": 0.65,
+     "colors": "ba"
+    },
+    {
+     "effect": "Fading",
+     "speed": "Normal",
+     "brightness": 0.4,
+     "colors": "ca"
+    }
+   ]
+  },
+  {
+   "slug": "Comet",
+   "name": "流星",
+   "idea": "底排一颗带尾巴的彗星绕圈，侧排一段光点迎面而来",
+   "cooler": "c",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "Swish",
+     "speed": "Normal",
+     "brightness": 0.75,
+     "colors": "a"
+    },
+    {
+     "effect": "Marquee",
+     "speed": "Normal",
+     "direction": "Backwards",
+     "length": 5,
+     "brightness": 0.7,
+     "colors": "b"
+    },
+    {
+     "effect": "BreathingCycling",
+     "speed": "Slow",
+     "brightness": 0.4,
+     "colors": "ca"
+    }
+   ]
+  },
+  {
+   "slug": "Heartbeat",
+   "name": "心跳",
+   "idea": "两排同拍脉冲，两种颜色每一拍对调",
+   "cooler": "b",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "Pulse",
+     "speed": "Slow",
+     "brightness": 0.6,
+     "colors": "ab"
+    },
+    {
+     "effect": "Pulse",
+     "speed": "Slow",
+     "brightness": 0.6,
+     "colors": "ba"
+    },
+    {
+     "effect": "BreathingCycling",
+     "speed": "Slow",
+     "brightness": 0.38,
+     "colors": "s"
+    }
+   ]
+  },
+  {
+   "slug": "Tide",
+   "name": "潮涌",
+   "idea": "两道明暗起伏的光带，一道向前一道向后，颜色不同",
+   "cooler": "a",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "Wave",
+     "speed": "Slow",
+     "direction": "Forwards",
+     "brightness": 0.7,
+     "colors": "a"
+    },
+    {
+     "effect": "Wave",
+     "speed": "Slow",
+     "direction": "Backwards",
+     "brightness": 0.7,
+     "colors": "b"
+    },
+    {
+     "effect": "Fading",
+     "speed": "Slow",
+     "brightness": 0.4,
+     "colors": "ab"
+    }
+   ]
+  },
+  {
+   "slug": "Chase",
+   "name": "追逐",
+   "idea": "两段光点在两排上相向奔跑，后置星点闪烁",
+   "cooler": "a",
+   "breathing": false,
+   "zones": [
+    {
+     "effect": "Marquee",
+     "speed": "Normal",
+     "direction": "Forwards",
+     "length": 4,
+     "brightness": 0.72,
+     "colors": "a"
+    },
+    {
+     "effect": "Marquee",
+     "speed": "Normal",
+     "direction": "Backwards",
+     "length": 4,
+     "brightness": 0.72,
+     "colors": "b"
+    },
+    {
+     "effect": "StarryNight",
+     "speed": "Slow",
+     "brightness": 0.45,
+     "colors": "s"
+    }
+   ]
+  },
+  {
+   "slug": "Embers",
+   "name": "余烬",
+   "idea": "底排烛火摇曳，侧排星点像火星飘起",
+   "cooler": "c",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "Candle",
+     "brightness": 0.7,
+     "colors": "a"
+    },
+    {
+     "effect": "StarryNight",
+     "speed": "Slow",
+     "brightness": 0.7,
+     "colors": "b"
+    },
+    {
+     "effect": "Candle",
+     "brightness": 0.4,
+     "colors": "s"
+    }
+   ]
+  },
+  {
+   "slug": "Bloom",
+   "name": "绽放",
+   "idea": "底排三色轮流呼吸，侧排同三色慢慢铺开",
+   "cooler": "a",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "BreathingCycling",
+     "speed": "Slow",
+     "brightness": 0.66,
+     "colors": "abc"
+    },
+    {
+     "effect": "CoveringMarquee",
+     "speed": "Slowest",
+     "direction": "Forwards",
+     "brightness": 0.62,
+     "colors": "bca"
+    },
+    {
+     "effect": "Fading",
+     "speed": "Slow",
+     "brightness": 0.4,
+     "colors": "ca"
+    }
+   ]
+  },
+  {
+   "slug": "Weave",
+   "name": "交织",
+   "idea": "底排两色色块缓缓行进，侧排两色半圈旋转",
+   "cooler": "b",
+   "breathing": false,
+   "zones": [
+    {
+     "effect": "Alternating",
+     "speed": "Slow",
+     "direction": "Forwards",
+     "length": 3,
+     "moving": true,
+     "brightness": 0.62,
+     "colors": "ab"
+    },
+    {
+     "effect": "TaiChi",
+     "speed": "Slow",
+     "direction": "Backwards",
+     "brightness": 0.66,
+     "colors": "bc"
+    },
+    {
+     "effect": "BreathingCycling",
+     "speed": "Slow",
+     "brightness": 0.4,
+     "colors": "c"
+    }
+   ]
+  },
+  {
+   "slug": "TwinComet",
+   "name": "双彗",
+   "idea": "两颗不同颜色的彗星一快一慢，时而并行时而错开",
+   "cooler": "c",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "Swish",
+     "speed": "Normal",
+     "brightness": 0.75,
+     "colors": "a"
+    },
+    {
+     "effect": "Swish",
+     "speed": "Slow",
+     "brightness": 0.75,
+     "colors": "b"
+    },
+    {
+     "effect": "BreathingCycling",
+     "speed": "Slow",
+     "brightness": 0.4,
+     "colors": "c"
+    }
+   ]
+  },
+  {
+   "slug": "Drizzle",
+   "name": "细雨",
+   "idea": "两排都是星点，颜色不同、快慢不同，像两层雨",
+   "cooler": "a",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "StarryNight",
+     "speed": "Normal",
+     "brightness": 0.75,
+     "colors": "a"
+    },
+    {
+     "effect": "StarryNight",
+     "speed": "Slow",
+     "brightness": 0.75,
+     "colors": "b"
+    },
+    {
+     "effect": "BreathingCycling",
+     "speed": "Slow",
+     "brightness": 0.38,
+     "colors": "s"
+    }
+   ]
+  },
+  {
+   "slug": "Sweep",
+   "name": "扫光",
+   "idea": "底排两色来回铺色，侧排一段强调色光点反向扫过",
+   "cooler": "c",
+   "breathing": false,
+   "zones": [
+    {
+     "effect": "CoveringMarquee",
+     "speed": "Normal",
+     "direction": "Forwards",
+     "brightness": 0.68,
+     "colors": "ab"
+    },
+    {
+     "effect": "Marquee",
+     "speed": "Slow",
+     "direction": "Backwards",
+     "length": 6,
+     "brightness": 0.72,
+     "colors": "c"
+    },
+    {
+     "effect": "Fading",
+     "speed": "Slow",
+     "brightness": 0.4,
+     "colors": "ab"
+    }
+   ]
+  },
+  {
+   "slug": "Vortex",
+   "name": "漩涡",
+   "idea": "底排双色旋转，侧排一道光带逆着流过，像被卷进去",
+   "cooler": "c",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "TaiChi",
+     "brightness": 0.68,
+     "colors": "ab",
+     "speed": "Normal",
+     "direction": "Forwards"
+    },
+    {
+     "effect": "Wave",
+     "brightness": 0.7,
+     "colors": "c",
+     "speed": "Normal",
+     "direction": "Backwards"
+    },
+    {
+     "effect": "BreathingCycling",
+     "brightness": 0.4,
+     "colors": "ca",
+     "speed": "Slow"
+    }
+   ]
+  },
+  {
+   "slug": "Lighthouse",
+   "name": "灯塔",
+   "idea": "底排一段长光缓缓扫过，侧排浅色光带反向回应",
+   "cooler": "a",
+   "breathing": false,
+   "zones": [
+    {
+     "effect": "Marquee",
+     "brightness": 0.72,
+     "colors": "a",
+     "speed": "Slow",
+     "direction": "Forwards",
+     "length": 6
+    },
+    {
+     "effect": "Wave",
+     "brightness": 0.7,
+     "colors": "s",
+     "speed": "Slow",
+     "direction": "Backwards"
+    },
+    {
+     "effect": "Fading",
+     "brightness": 0.4,
+     "colors": "ab",
+     "speed": "Slow"
+    }
+   ]
+  },
+  {
+   "slug": "Echo",
+   "name": "回声",
+   "idea": "两排同拍脉冲，三种颜色错开一位，侧排总比底排晚一色",
+   "cooler": "b",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "Pulse",
+     "brightness": 0.6,
+     "colors": "abc",
+     "speed": "Normal"
+    },
+    {
+     "effect": "Pulse",
+     "brightness": 0.6,
+     "colors": "bca",
+     "speed": "Normal"
+    },
+    {
+     "effect": "BreathingCycling",
+     "brightness": 0.38,
+     "colors": "s",
+     "speed": "Slow"
+    }
+   ]
+  },
+  {
+   "slug": "Cascade",
+   "name": "瀑布",
+   "idea": "两排同向铺色，侧排落后一色，颜色一层压一层往下流",
+   "cooler": "c",
+   "breathing": false,
+   "zones": [
+    {
+     "effect": "CoveringMarquee",
+     "brightness": 0.68,
+     "colors": "abc",
+     "speed": "Normal",
+     "direction": "Forwards"
+    },
+    {
+     "effect": "CoveringMarquee",
+     "brightness": 0.68,
+     "colors": "bca",
+     "speed": "Normal",
+     "direction": "Forwards"
+    },
+    {
+     "effect": "Fading",
+     "brightness": 0.4,
+     "colors": "ca",
+     "speed": "Normal"
+    }
+   ]
+  },
+  {
+   "slug": "Firefly",
+   "name": "萤火",
+   "idea": "底排星点忽明忽暗，侧排烛火轻轻摇，后置也有零星光点",
+   "cooler": "b",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "StarryNight",
+     "brightness": 0.75,
+     "colors": "a",
+     "speed": "Normal"
+    },
+    {
+     "effect": "Candle",
+     "brightness": 0.68,
+     "colors": "b"
+    },
+    {
+     "effect": "StarryNight",
+     "brightness": 0.45,
+     "colors": "s",
+     "speed": "Slow"
+    }
+   ]
+  },
+  {
+   "slug": "Prism",
+   "name": "棱镜",
+   "idea": "底排三色缓慢渐变，侧排两色色块逆向行进，像光被折成几段",
+   "cooler": "a",
+   "breathing": false,
+   "zones": [
+    {
+     "effect": "Fading",
+     "brightness": 0.68,
+     "colors": "abc",
+     "speed": "Slow"
+    },
+    {
+     "effect": "Alternating",
+     "brightness": 0.64,
+     "colors": "ca",
+     "speed": "Normal",
+     "direction": "Backwards",
+     "length": 5,
+     "moving": true
+    },
+    {
+     "effect": "Fading",
+     "brightness": 0.4,
+     "colors": "bc",
+     "speed": "Slow"
+    }
+   ]
+  },
+  {
+   "slug": "Shuttle",
+   "name": "穿梭",
+   "idea": "底排彗星绕圈，侧排两色色块迎面行进，后置烛火",
+   "cooler": "c",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "Swish",
+     "brightness": 0.75,
+     "colors": "a",
+     "speed": "Normal"
+    },
+    {
+     "effect": "Alternating",
+     "brightness": 0.64,
+     "colors": "bc",
+     "speed": "Normal",
+     "direction": "Forwards",
+     "length": 3,
+     "moving": true
+    },
+    {
+     "effect": "Candle",
+     "brightness": 0.4,
+     "colors": "s"
+    }
+   ]
+  },
+  {
+   "slug": "Veil",
+   "name": "光幕",
+   "idea": "底排极慢的光带，侧排两色渐变，整体像一层缓缓飘动的纱",
+   "cooler": "b",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "Wave",
+     "brightness": 0.7,
+     "colors": "a",
+     "speed": "Slowest",
+     "direction": "Forwards"
+    },
+    {
+     "effect": "Fading",
+     "brightness": 0.66,
+     "colors": "bc",
+     "speed": "Slow"
+    },
+    {
+     "effect": "BreathingCycling",
+     "brightness": 0.4,
+     "colors": "cb",
+     "speed": "Slowest"
+    }
+   ]
+  },
+  {
+   "slug": "PulseWave",
+   "name": "脉涌",
+   "idea": "底排柔和脉冲呼吸闪动，侧排同调波浪涌起，一呼一吸间光浪翻涌",
+   "cooler": "b",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "Pulse",
+     "speed": "Slow",
+     "brightness": 0.72,
+     "colors": "ab"
+    },
+    {
+     "effect": "Wave",
+     "speed": "Slow",
+     "direction": "Forwards",
+     "brightness": 0.68,
+     "colors": "a"
+    },
+    {
+     "effect": "BreathingCycling",
+     "speed": "Slow",
+     "brightness": 0.42,
+     "colors": "sb"
+    }
+   ]
+  },
+  {
+   "slug": "Nova",
+   "name": "闪耀",
+   "idea": "底排与侧排双层微光星点交织闪烁，后置烛火轻颤如星核",
+   "cooler": "a",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "StarryNight",
+     "speed": "Normal",
+     "brightness": 0.72,
+     "colors": "a"
+    },
+    {
+     "effect": "StarryNight",
+     "speed": "Slow",
+     "brightness": 0.68,
+     "colors": "c"
+    },
+    {
+     "effect": "Candle",
+     "brightness": 0.4,
+     "colors": "s"
+    }
+   ]
+  },
+  {
+   "slug": "AuroraSpark",
+   "name": "微烁",
+   "idea": "底排双色反向铺色交错，侧排同节奏脉冲呼应，后置慢呼吸",
+   "cooler": "c",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "CoveringMarquee",
+     "speed": "Slow",
+     "direction": "Forwards",
+     "brightness": 0.7,
+     "colors": "abc"
+    },
+    {
+     "effect": "Pulse",
+     "speed": "Slow",
+     "brightness": 0.68,
+     "colors": "ba"
+    },
+    {
+     "effect": "BreathingCycling",
+     "speed": "Slowest",
+     "brightness": 0.42,
+     "colors": "sc"
+    }
+   ]
+  },
+  {
+   "slug": "Thunder",
+   "name": "雷鸣",
+   "idea": "两排同拍双色对调脉冲闪动，主副色错落交替，如两道错落电光",
+   "cooler": "a",
+   "breathing": true,
+   "zones": [
+    {
+     "effect": "Pulse",
+     "speed": "Slow",
+     "brightness": 0.72,
+     "colors": "ac"
+    },
+    {
+     "effect": "Pulse",
+     "speed": "Slow",
+     "brightness": 0.72,
+     "colors": "ca"
+    },
+    {
+     "effect": "Fading",
+     "speed": "Slow",
+     "brightness": 0.4,
+     "colors": "asc"
+    }
+   ]
+  },
+  {
+   "slug": "Mirage",
+   "name": "幻影",
+   "idea": "底排彗星流光绕行，侧排同速脉冲节律闪烁，一动一闪互相映照",
+   "cooler": "b",
+   "breathing": false,
+   "zones": [
+    {
+     "effect": "Swish",
+     "speed": "Slow",
+     "brightness": 0.72,
+     "colors": "a"
+    },
+    {
+     "effect": "Pulse",
+     "speed": "Slow",
+     "brightness": 0.68,
+     "colors": "ba"
+    },
+    {
+     "effect": "BreathingCycling",
+     "speed": "Slow",
+     "brightness": 0.42,
+     "colors": "sb"
+    }
+   ]
+  }
+ ]
+}

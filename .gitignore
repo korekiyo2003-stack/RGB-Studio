@@ -1,0 +1,22 @@
+# User state and temporary files
+preferences.json
+status.json
+*.tmp
+*.log
+*.pid.txt
+rgb-check-pid.txt
+rgb-probe-pid.txt
+__pycache__/
+*.pyc
+
+# IDE / Editor files
+.vs/
+.vscode/
+.idea/
+bin/
+obj/
+*.user
+*.suo
+
+# Build intermediates
+*.pdb
