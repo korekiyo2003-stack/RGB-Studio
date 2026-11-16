@@ -16,7 +16,7 @@ if not exist %CSC% (
 echo Using compiler: %CSC%
 if not exist "..\release" mkdir "..\release"
 
-%CSC% /target:winexe /optimize+ /out:"..\release\RGB Studio.exe" /reference:System.dll,System.Core.dll,System.Drawing.dll,System.Windows.Forms.dll,System.Web.Extensions.dll ..\src\BoardRgb.cs ..\src\LightingPanel.cs ..\src\MemoryLighting.cs ..\src\MemoryShow.cs ..\src\RgbStudio.cs ..\src\RigPreview.cs ..\src\SceneCard.cs
+%CSC% /target:winexe /optimize+ /out:"..\release\RGB Studio.exe" /reference:System.dll,System.Core.dll,System.Drawing.dll,System.Windows.Forms.dll,System.Web.Extensions.dll,System.Management.dll ..\src\BoardRgb.cs ..\src\LightingPanel.cs ..\src\MemoryLighting.cs ..\src\MemoryShow.cs ..\src\MotherboardDetector.cs ..\src\RgbStudio.cs ..\src\RigPreview.cs ..\src\SceneCard.cs
 
 if %ERRORLEVEL% EQU 0 (
     echo [SUCCESS] Compiled successfully to release\RGB Studio.exe

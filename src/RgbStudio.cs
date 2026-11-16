@@ -87,7 +87,7 @@ internal sealed class Studio : Form
     private long logOffset;
     private string error;
     private Scene shown;
-    private string boardResult;
+    private string boardResult = MotherboardDetector.Current.Summary;
     private Scene wanted;
     private int vividIndex = 1;
     private static readonly double[] Gammas = { 1.0, 2.2, 3.0 };

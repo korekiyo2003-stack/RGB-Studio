@@ -154,7 +154,7 @@ RGB Studio requires zero heavy SDKs and compiles in seconds using the Windows na
 build.bat
 
 :: Direct compiler invocation
-C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:winexe /optimize+ /out:"release\RGB Studio.exe" /reference:System.dll,System.Core.dll,System.Drawing.dll,System.Windows.Forms.dll,System.Web.Extensions.dll src\BoardRgb.cs src\LightingPanel.cs src\MemoryLighting.cs src\MemoryShow.cs src\RgbStudio.cs src\RigPreview.cs src\SceneCard.cs
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:winexe /optimize+ /out:"release\RGB Studio.exe" /reference:System.dll,System.Core.dll,System.Drawing.dll,System.Windows.Forms.dll,System.Web.Extensions.dll,System.Management.dll src\BoardRgb.cs src\LightingPanel.cs src\MemoryLighting.cs src\MemoryShow.cs src\MotherboardDetector.cs src\RgbStudio.cs src\RigPreview.cs src\SceneCard.cs
 ```
 The compiled output is saved to `release/RGB Studio.exe`.
 

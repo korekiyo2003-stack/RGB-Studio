@@ -164,7 +164,7 @@ RGB Studio 是一款面向 PC 硬件玩家的高性能、无后台臃肿组件�
 
 ```powershell
 # 1. 编译并使用主板 ARGB 诊断探针（测试发送纯红色 FF0000）
-C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:exe /out:src/BoardProbe.exe src/BoardRgb.cs src/BoardProbe.cs
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:exe /reference:System.Management.dll /out:src/BoardProbe.exe src/MotherboardDetector.cs src/BoardRgb.cs src/BoardProbe.cs
 .\src\BoardProbe.exe FF0000
 
 # 2. 诊断内存双通道通讯与时钟延迟
@@ -188,7 +188,7 @@ build.bat
 
 ### 手动构建命令
 ```cmd
-C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:winexe /optimize+ /out:"release\RGB Studio.exe" /reference:System.dll,System.Core.dll,System.Drawing.dll,System.Windows.Forms.dll,System.Web.Extensions.dll src\BoardRgb.cs src\LightingPanel.cs src\MemoryLighting.cs src\MemoryShow.cs src\RgbStudio.cs src\RigPreview.cs src\SceneCard.cs
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:winexe /optimize+ /out:"release\RGB Studio.exe" /reference:System.dll,System.Core.dll,System.Drawing.dll,System.Windows.Forms.dll,System.Web.Extensions.dll,System.Management.dll src\BoardRgb.cs src\LightingPanel.cs src\MemoryLighting.cs src\MemoryShow.cs src\MotherboardDetector.cs src\RgbStudio.cs src\RigPreview.cs src\SceneCard.cs
 ```
 编译成功后，产物将自动输出至 `release\RGB Studio.exe`。
 
