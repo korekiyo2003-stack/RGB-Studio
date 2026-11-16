@@ -26,6 +26,13 @@ internal sealed class SceneCard : Control
     public readonly CheckBox Include;
     public readonly Button ApplyButton;
     private bool hover, shown, current;
+    private double flashTime = 0;
+
+    public void Flash()
+    {
+        flashTime = Clock.Elapsed.TotalSeconds;
+        Invalidate();
+    }
 
     public SceneCard(Scene scene, bool included)
     {
@@ -47,7 +54,19 @@ internal sealed class SceneCard : Control
     }
 
     public bool Shown { get { return shown; } set { if (shown != value) { shown = value; Refit(); } } }
-    public bool Current { get { return current; } set { if (current != value) { current = value; Invalidate(); } } }
+    public bool Current
+    {
+        get { return current; }
+        set
+        {
+            if (current != value)
+            {
+                current = value;
+                if (current) Flash();
+                Invalidate();
+            }
+        }
+    }
 
     // Where the animated memory chip is, so the list can repaint only that.
     public Rectangle MemoryArea { get { return new Rectangle(18 + 3 * 92, 66, Math.Max(60, Width - 18 - 3 * 92 - 12), 28); } }
@@ -97,19 +116,46 @@ internal sealed class SceneCard : Control
         g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
         g.Clear(Parent == null ? Well : Parent.BackColor);
         var body = new RectangleF(0.5f, 0.5f, Width - 1, Height - 1);
+        double now = Clock.Elapsed.TotalSeconds;
+        float flash = 0f;
+        if (flashTime > 0 && now - flashTime < 0.8)
+        {
+            flash = (float)(1.0 - (now - flashTime) / 0.8);
+        }
+        double pulse = current ? 0.80 + 0.20 * Math.Sin(now * 3.8) : 1.0;
+
         using (var shape = Round(body, 10))
         {
             using (var fill = new SolidBrush(Fill)) g.FillPath(fill, shape);
-            if (shown || current)
-                using (var edge = new Pen(current ? Accent : Color.FromArgb(86, 104, 128), 1.4f)) g.DrawPath(edge, shape);
-            // Colour spine: the scene's memory colours top to bottom.
-            Color[] spine = (Scene.memory ?? new[] { Scene.cooler ?? "6F8F9D" }).Select(Hex).ToArray();
+            if (shown || current || flash > 0)
+            {
+                int er = current ? Math.Min(255, (int)(Accent.R * pulse + 55 * flash)) : 86;
+                int eg = current ? Math.Min(255, (int)(Accent.G * pulse + 55 * flash)) : 104;
+                int eb = current ? Math.Min(255, (int)(Accent.B * pulse + 55 * flash)) : 128;
+                using (var edge = new Pen(Color.FromArgb(er, eg, eb), current ? (1.6f + 1.2f * flash) : 1.4f))
+                    g.DrawPath(edge, shape);
+            }
+            // Colour spine: the scene's memory colours top to bottom with subtle breathing animation
+            Color[] rawSpine = (Scene.memory ?? new[] { Scene.cooler ?? "6F8F9D" }).Select(Hex).ToArray();
+            Color[] spine = rawSpine;
+            if (current)
+            {
+                spine = new Color[rawSpine.Length];
+                for (int si = 0; si < rawSpine.Length; si++)
+                {
+                    Color sc = rawSpine[si];
+                    int sr = Math.Min(255, (int)(sc.R * pulse + 40 * flash));
+                    int sg = Math.Min(255, (int)(sc.G * pulse + 40 * flash));
+                    int sb = Math.Min(255, (int)(sc.B * pulse + 40 * flash));
+                    spine[si] = Color.FromArgb(sc.A, sr, sg, sb);
+                }
+            }
             var clip = g.Clip;
             g.SetClip(shape);
-            var bar = new Rectangle(0, 0, 6, Height);
+            var bar = new Rectangle(0, 0, current ? 7 : 6, Height);
             if (spine.Length == 1) using (var flat = new SolidBrush(spine[0])) g.FillRectangle(flat, bar);
             else
-                using (var blend = new LinearGradientBrush(new Rectangle(0, -1, 6, Height + 2), spine[0], spine[spine.Length - 1], 90f))
+                using (var blend = new LinearGradientBrush(new Rectangle(0, -1, current ? 7 : 6, Height + 2), spine[0], spine[spine.Length - 1], 90f))
                 {
                     blend.InterpolationColors = new ColorBlend { Colors = spine,
                         Positions = spine.Select((c, k) => k / (float)(spine.Length - 1)).ToArray() };

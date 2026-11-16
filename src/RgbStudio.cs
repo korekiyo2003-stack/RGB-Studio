@@ -43,6 +43,7 @@ public sealed class Preferences
     public int minutes { get; set; }
     public string last { get; set; }
     public int vivid { get; set; }   // 1-based index of the memory colour depth; 0 = not chosen yet
+    public string caseId { get; set; }
 }
 
 internal sealed class Studio : Form
@@ -91,6 +92,11 @@ internal sealed class Studio : Form
     private Scene wanted;
     private int vividIndex = 1;
     private static readonly double[] Gammas = { 1.0, 2.2, 3.0 };
+    private static readonly string[] SpinnerFrames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" };
+    private int spinnerIndex = 0;
+    private string currentCaseId = "lianli_o11";
+    private CaseCatalog caseCatalog;
+    private ComboBox caseCombo;
 
     [System.Runtime.InteropServices.DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr window, int attribute, ref int value, int size);
@@ -243,7 +249,14 @@ internal sealed class Studio : Form
         cardFrames.Tick += delegate {
             if (!Visible || WindowState == FormWindowState.Minimized) return;
             foreach (Control item in cards.Controls)
-                if (item.Visible && item.Bottom > 0 && item.Top < cards.ClientSize.Height) item.Invalidate(((SceneCard)item).MemoryArea);
+            {
+                if (item.Visible && item.Bottom > 0 && item.Top < cards.ClientSize.Height)
+                {
+                    var sc = (SceneCard)item;
+                    if (sc.Current) sc.Invalidate();
+                    else sc.Invalidate(sc.MemoryArea);
+                }
+            }
         };
         cardFrames.Start();
         FormClosed += delegate { cardFrames.Dispose(); };
@@ -275,13 +288,66 @@ internal sealed class Studio : Form
         detail.RowStyles.Add(new RowStyle(SizeType.Absolute, 154));
         main.Controls.Add(detail, 1, 0);
         main.SetRowSpan(detail, 2);
-        heroTitle = TextLabel("灯光预览", 16, Foreground);
-        detail.Controls.Add(heroTitle, 0, 0);
+        rig = new RigPreview { Dock = DockStyle.Fill };
+        caseCatalog = RigPreview.LoadCatalog(DirectoryPath);
+
+        var headerPanel = new TableLayoutPanel {
+            Dock = DockStyle.Fill,
+            RowCount = 1,
+            ColumnCount = 2,
+            Margin = new Padding(0)
+        };
+        headerPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        headerPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
+        heroTitle = TextLabel("机箱灯光预览", 15, Foreground);
+        headerPanel.Controls.Add(heroTitle, 0, 0);
+
+        caseCombo = new ComboBox {
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            BackColor = Card,
+            ForeColor = Foreground,
+            FlatStyle = FlatStyle.Flat,
+            Font = new Font("Microsoft YaHei UI", 9f),
+            Width = 165,
+            Margin = new Padding(0, 4, 0, 0)
+        };
+        Darken(caseCombo, "DarkMode_CFD");
+        for (int i = 0; i < caseCatalog.cases.Length; i++)
+        {
+            caseCombo.Items.Add(caseCatalog.cases[i].name);
+        }
+        int defaultCaseIdx = 0;
+        for (int i = 0; i < caseCatalog.cases.Length; i++)
+        {
+            if (caseCatalog.cases[i].id == (saved != null && !string.IsNullOrEmpty(saved.caseId) ? saved.caseId : caseCatalog.defaultCase))
+            {
+                defaultCaseIdx = i;
+                break;
+            }
+        }
+        if (caseCombo.Items.Count > 0) caseCombo.SelectedIndex = defaultCaseIdx;
+        currentCaseId = caseCatalog.cases[defaultCaseIdx].id;
+        rig.CurrentCase = caseCatalog.cases[defaultCaseIdx];
+
+        caseCombo.SelectedIndexChanged += delegate {
+            if (caseCombo.SelectedIndex >= 0 && caseCombo.SelectedIndex < caseCatalog.cases.Length)
+            {
+                var selected = caseCatalog.cases[caseCombo.SelectedIndex];
+                currentCaseId = selected.id;
+                rig.CurrentCase = selected;
+                rig.Invalidate();
+                SavePreferences();
+            }
+        };
+        headerPanel.Controls.Add(caseCombo, 1, 0);
+        detail.Controls.Add(headerPanel, 0, 0);
+
         ideaLabel = TextLabel("", 9, Muted);
         ideaLabel.AutoEllipsis = false;
         ideaLabel.TextAlign = ContentAlignment.TopLeft;
         detail.Controls.Add(ideaLabel, 0, 1);
-        rig = new RigPreview { Dock = DockStyle.Fill };
+
         detail.Controls.Add(rig, 0, 2);
         boardStatus = TextLabel("", 9, Muted);
         detail.Controls.Add(boardStatus, 0, 3);
@@ -429,7 +495,8 @@ internal sealed class Studio : Form
         try {
             var settings = new Preferences { running = running, minutes = (int)Period.TotalMinutes,
                 included = pool.Where(p => p.Value.Checked).Select(p => p.Key).ToArray(), vivid = vividIndex + 1,
-                last = active != null ? active.slug : wanted != null ? wanted.slug : null };
+                last = active != null ? active.slug : wanted != null ? wanted.slug : null,
+                caseId = currentCaseId };
             string temporary = SettingsPath + ".tmp";
             File.WriteAllText(temporary, new JavaScriptSerializer().Serialize(settings));
             if (File.Exists(SettingsPath)) File.Replace(temporary, SettingsPath, null);
@@ -552,13 +619,49 @@ internal sealed class Studio : Form
         toggle.Text = running ? "暂停轮换" : "开启轮换";
         TimeSpan remaining = next > DateTime.UtcNow ? next - DateTime.UtcNow : TimeSpan.Zero;
         countdown.Text = running ? "下次切换  " + remaining.ToString(@"mm\:ss") : "随机轮换已暂停";
-        status.Text = pending != null ? "正在切换  " + pending.name :
-            error ?? (active != null ? "CAM 已应用  " + active.name : "等待应用灯光方案");
-        boardStatus.Text = boardResult ?? "风扇与内存 · 等待应用";
+
+        spinnerIndex = (spinnerIndex + 1) % SpinnerFrames.Length;
+        if (pending != null)
+        {
+            status.Text = SpinnerFrames[spinnerIndex] + "  正在应用  " + pending.name;
+            status.ForeColor = Accent;
+        }
+        else if (error != null)
+        {
+            status.Text = "⚠ " + error;
+            status.ForeColor = Color.FromArgb(255, 123, 114);
+        }
+        else if (active != null)
+        {
+            status.Text = "✓ CAM 已应用  " + active.name;
+            status.ForeColor = Accent;
+        }
+        else
+        {
+            status.Text = "等待应用灯光方案";
+            status.ForeColor = Muted;
+        }
+
+        if (!string.IsNullOrEmpty(boardResult))
+        {
+            boardStatus.Text = boardResult;
+            if (boardResult.Contains("已验证") || boardResult.Contains("识别"))
+                boardStatus.ForeColor = Accent;
+            else if (boardResult.Contains("未切换") || boardResult.Contains("冲突") || boardResult.Contains("不可用") || boardResult.Contains("不一致") || boardResult.Contains("没有回应"))
+                boardStatus.ForeColor = Color.FromArgb(255, 170, 51);
+            else
+                boardStatus.ForeColor = Muted;
+        }
+        else
+        {
+            boardStatus.Text = "风扇与内存 · 等待应用";
+            boardStatus.ForeColor = Muted;
+        }
+
         foreach (var item in previews)
         {
             bool selected = active != null && active.slug == item.Key;
-            item.Value.Text = selected ? "当前" : "应用";
+            item.Value.Text = selected ? "✓ 当前" : "应用";
             item.Value.BackColor = selected ? Accent : Background;
             item.Value.ForeColor = selected ? Background : Foreground;
             item.Value.Enabled = pending == null && !selected;
