@@ -21,6 +21,7 @@ if not exist "..\release" mkdir "..\release"
 if %ERRORLEVEL% EQU 0 (
     echo [SUCCESS] Compiled successfully to release\RGB Studio.exe
     copy /y "..\presets\scenes.json" "..\release\scenes.json" >nul
+    copy /y "..\presets\cases.json" "..\release\cases.json" >nul
     if not exist "..\release\preferences.json" copy /y "..\presets\preferences.example.json" "..\release\preferences.json" >nul
 ) else (
     echo [FAILED] Compilation failed with code %ERRORLEVEL%

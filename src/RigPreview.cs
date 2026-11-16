@@ -3,10 +3,66 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.IO;
+using System.Web.Script.Serialization;
+
+public sealed class CaseFan
+{
+    public string name { get; set; }
+    public int zone { get; set; }
+    public int fanIndex { get; set; }
+    public int totalFans { get; set; }
+    public int x { get; set; }
+    public int y { get; set; }
+    public int radius { get; set; }
+}
+
+public sealed class CaseBox
+{
+    public int x { get; set; }
+    public int y { get; set; }
+    public int width { get; set; }
+    public int height { get; set; }
+}
+
+public sealed class CaseCooler
+{
+    public int x { get; set; }
+    public int y { get; set; }
+    public int radius { get; set; }
+}
+
+public sealed class CaseRam
+{
+    public int x { get; set; }
+    public int y { get; set; }
+    public int width { get; set; }
+    public int height { get; set; }
+}
+
+public sealed class CaseConfig
+{
+    public string id { get; set; }
+    public string name { get; set; }
+    public string description { get; set; }
+    public CaseBox motherboard { get; set; }
+    public CaseBox gpu { get; set; }
+    public CaseCooler cooler { get; set; }
+    public CaseRam[] ram { get; set; }
+    public CaseFan[] fans { get; set; }
+}
+
+public sealed class CaseCatalog
+{
+    public string defaultCase { get; set; }
+    public CaseConfig[] cases { get; set; }
+}
 
 internal sealed class RigPreview : Control
 {
     public Scene Scene { get; set; }
+    public CaseConfig CurrentCase { get; set; }
+
     private readonly Stopwatch time = Stopwatch.StartNew();
     private readonly Timer frames = new Timer { Interval = 42 };
 
@@ -14,8 +70,62 @@ internal sealed class RigPreview : Control
     {
         DoubleBuffered = true;
         AccessibleName = "机箱灯光示意图";
+        CurrentCase = CreateDefaultCase();
         frames.Tick += delegate { if (Visible) Invalidate(); };
         frames.Start();
+    }
+
+    public static CaseConfig CreateDefaultCase()
+    {
+        return new CaseConfig
+        {
+            id = "lianli_o11",
+            name = "Lian Li O11 Dynamic",
+            description = "双面海景房 · 底部3进风 / 侧面3进风 / 后置1出风",
+            motherboard = new CaseBox { x = 82, y = 45, width = 177, height = 123 },
+            gpu = new CaseBox { x = 97, y = 137, width = 160, height = 30 },
+            cooler = new CaseCooler { x = 149, y = 94, radius = 24 },
+            ram = new CaseRam[] {
+                new CaseRam { x = 209, y = 54, width = 11, height = 75 },
+                new CaseRam { x = 225, y = 54, width = 11, height = 75 }
+            },
+            fans = new CaseFan[] {
+                new CaseFan { name = "Rear", zone = 2, fanIndex = 0, totalFans = 1, x = 60, y = 86, radius = 22 },
+                new CaseFan { name = "Side 1", zone = 1, fanIndex = 0, totalFans = 3, x = 300, y = 60, radius = 24 },
+                new CaseFan { name = "Side 2", zone = 1, fanIndex = 1, totalFans = 3, x = 300, y = 115, radius = 24 },
+                new CaseFan { name = "Side 3", zone = 1, fanIndex = 2, totalFans = 3, x = 300, y = 170, radius = 24 },
+                new CaseFan { name = "Bottom 1", zone = 0, fanIndex = 0, totalFans = 3, x = 105, y = 203, radius = 23 },
+                new CaseFan { name = "Bottom 2", zone = 0, fanIndex = 1, totalFans = 3, x = 163, y = 203, radius = 23 },
+                new CaseFan { name = "Bottom 3", zone = 0, fanIndex = 2, totalFans = 3, x = 221, y = 203, radius = 23 }
+            }
+        };
+    }
+
+    public static CaseCatalog LoadCatalog(string baseDir)
+    {
+        string[] candidates = new string[] {
+            Path.Combine(baseDir, "cases.json"),
+            Path.Combine(baseDir, "presets", "cases.json"),
+            Path.Combine(baseDir, "..", "presets", "cases.json")
+        };
+        for (int i = 0; i < candidates.Length; i++)
+        {
+            if (File.Exists(candidates[i]))
+            {
+                try
+                {
+                    var ser = new JavaScriptSerializer();
+                    var cat = ser.Deserialize<CaseCatalog>(File.ReadAllText(candidates[i]));
+                    if (cat != null && cat.cases != null && cat.cases.Length > 0)
+                        return cat;
+                }
+                catch { }
+            }
+        }
+        var fallback = new CaseCatalog();
+        fallback.defaultCase = "lianli_o11";
+        fallback.cases = new CaseConfig[] { CreateDefaultCase() };
+        return fallback;
     }
 
     protected override void Dispose(bool disposing)
@@ -41,6 +151,10 @@ internal sealed class RigPreview : Control
             cooler = Mix(Color.FromArgb(32, 42, 57), cooler, Breath(seconds + 1.2, 7));
         cooler = LightingPanel.PreviewFan(this, cooler, seconds);
         Color[][] sticks = LightingPanel.PreviewMemory(this, memory, seconds);
+
+        CaseConfig c = CurrentCase ?? CreateDefaultCase();
+
+        // Chassis Outer Frame
         using (var shell = new LinearGradientBrush(new Rectangle(26, 22, 307, 220),
             Color.FromArgb(40, 53, 65), Color.FromArgb(20, 29, 40), 90f))
         using (var line = new Pen(Color.FromArgb(104, 127, 143), 1.2f))
@@ -49,33 +163,59 @@ internal sealed class RigPreview : Control
             g.DrawRectangle(line, 26, 22, 307, 220);
             g.DrawLine(line, 26, 233, 333, 233);
         }
-        Fill(g, Color.FromArgb(24, 33, 44), 82, 45, 177, 123);
-        using (var grid = new Pen(Color.FromArgb(49, 66, 79), 1))
+
+        // Motherboard Backplate & Grid
+        if (c.motherboard != null)
         {
-            for (int x = 89; x < 257; x += 13) g.DrawLine(grid, x, 47, x, 166);
-            for (int y = 49; y < 166; y += 13) g.DrawLine(grid, 84, y, 256, y);
-        }
-        Fan(g, 60, 86, 22, Ring(2, seconds, 0, 1));
-        Fan(g, 300, 60, 24, Ring(1, seconds, 0, 3));
-        Fan(g, 300, 115, 24, Ring(1, seconds, 1, 3));
-        Fan(g, 300, 170, 24, Ring(1, seconds, 2, 3));
-        Fan(g, 105, 203, 23, Ring(0, seconds, 0, 3));
-        Fan(g, 163, 203, 23, Ring(0, seconds, 1, 3));
-        Fan(g, 221, 203, 23, Ring(0, seconds, 2, 3));
-        Fill(g, Color.FromArgb(77, 92, 106), 97, 137, 160, 30);
-        Fill(g, Color.FromArgb(49, 61, 76), 99, 143, 155, 20);
-        Fill(g, Color.FromArgb(66, 82, 96), 112, 57, 82, 74);
-        for (int x = 116; x < 193; x += 4) Fill(g, Color.FromArgb(89, 105, 117), x, 61, 1, 66);
-        Fan(g, 149, 94, 24, Solid(cooler));
-        for (int stick = 0; stick < 2; stick++)
-        {
-            int x = 209 + stick * 16;
-            Fill(g, Color.FromArgb(58, 70, 84), x, 54, 11, 75);
-            for (int k = 0; k < 8; k++)
+            Fill(g, Color.FromArgb(24, 33, 44), c.motherboard.x, c.motherboard.y, c.motherboard.width, c.motherboard.height);
+            using (var grid = new Pen(Color.FromArgb(49, 66, 79), 1))
             {
-                // LED 0 is drawn at the top; which end it is on the real stick has not been checked.
-                Fill(g, Color.FromArgb(120, sticks[stick][k]), x + 1, 56 + k * 9, 9, 9);
-                Fill(g, sticks[stick][k], x + 3, 57 + k * 9, 5, 7);
+                for (int x = c.motherboard.x + 7; x < c.motherboard.x + c.motherboard.width; x += 13)
+                    g.DrawLine(grid, x, c.motherboard.y + 2, x, c.motherboard.y + c.motherboard.height - 2);
+                for (int y = c.motherboard.y + 4; y < c.motherboard.y + c.motherboard.height; y += 13)
+                    g.DrawLine(grid, c.motherboard.x + 2, y, c.motherboard.x + c.motherboard.width - 2, y);
+            }
+        }
+
+        // Chassis Fans
+        if (c.fans != null)
+        {
+            for (int i = 0; i < c.fans.Length; i++)
+            {
+                var f = c.fans[i];
+                int z = Math.Max(0, Math.Min(2, f.zone));
+                Fan(g, f.x, f.y, f.radius > 0 ? f.radius : 22, Ring(z, seconds, f.fanIndex, Math.Max(1, f.totalFans)));
+            }
+        }
+
+        // GPU Area
+        if (c.gpu != null)
+        {
+            Fill(g, Color.FromArgb(77, 92, 106), c.gpu.x, c.gpu.y, c.gpu.width, c.gpu.height);
+            Fill(g, Color.FromArgb(49, 61, 76), c.gpu.x + 2, c.gpu.y + 6, c.gpu.width - 5, c.gpu.height - 10);
+        }
+
+        // CPU Cooler
+        if (c.cooler != null)
+        {
+            Fill(g, Color.FromArgb(66, 82, 96), c.cooler.x - 37, c.cooler.y - 37, 74, 74);
+            for (int x = c.cooler.x - 33; x < c.cooler.x + 35; x += 4)
+                Fill(g, Color.FromArgb(89, 105, 117), x, c.cooler.y - 33, 1, 66);
+            Fan(g, c.cooler.x, c.cooler.y, c.cooler.radius > 0 ? c.cooler.radius : 24, Solid(cooler));
+        }
+
+        // RAM Sticks
+        if (c.ram != null)
+        {
+            for (int stick = 0; stick < Math.Min(2, c.ram.Length); stick++)
+            {
+                var r = c.ram[stick];
+                Fill(g, Color.FromArgb(58, 70, 84), r.x, r.y, r.width, r.height);
+                for (int k = 0; k < 8; k++)
+                {
+                    Fill(g, Color.FromArgb(120, sticks[stick][k]), r.x + 1, r.y + 2 + k * 9, r.width - 2, 9);
+                    Fill(g, sticks[stick][k], r.x + 3, r.y + 3 + k * 9, Math.Max(2, r.width - 6), 7);
+                }
             }
         }
     }
