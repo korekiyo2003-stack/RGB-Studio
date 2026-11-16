@@ -11,6 +11,7 @@
 4. [Hardware Header Standards & Motherboard Solutions](#4-hardware-header-standards--motherboard-solutions)
 5. [Debugging & Troubleshooting Guide](#5-debugging--troubleshooting-guide)
 6. [Building from Source](#6-building-from-source)
+7. [Deep Dive: Low-Level Hardware Protocol & Engineering Notes](#7-deep-dive-low-level-hardware-protocol--engineering-notes)
 
 ---
 
@@ -156,3 +157,53 @@ build.bat
 C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:winexe /optimize+ /out:"release\RGB Studio.exe" /reference:System.dll,System.Core.dll,System.Drawing.dll,System.Windows.Forms.dll,System.Web.Extensions.dll src\BoardRgb.cs src\LightingPanel.cs src\MemoryLighting.cs src\MemoryShow.cs src\RgbStudio.cs src\RigPreview.cs src\SceneCard.cs
 ```
 The compiled output is saved to `release/RGB Studio.exe`.
+
+---
+
+## 7. Deep Dive: Low-Level Hardware Protocol & Engineering Notes
+
+### 7.1. ASRock Polychrome USB HID Protocol (VID 0x26CE / PID 0x01A2)
+RGB Studio interfaces directly with the onboard Nuvoton/ASRock USB microcontroller (`vid_26ce&pid_01a2`) via Win32 SetupDi device enumeration and unbuffered `CreateFile` file streams. All communications adhere to a custom 65-byte USB report structure:
+
+```text
++----------+-------------------------------------------------------------+
+| Offset   | Field Description & Protocol Semantics                     |
++----------+-------------------------------------------------------------+
+| Byte 0   | 0x00: USB HID Report ID                                    |
+| Byte 1   | Command: 0x10 = Set Zone, 0x11 = Read Zone, 0x14 = Header   |
+| Byte 2   | Sub-command / Reserved (0x00)                               |
+| Byte 3   | Target Zone Index (0x00 - 0x07: ARGB Header, RGB, PCH, IO) |
+| Byte 4   | Mode: 0x01 = Static, 0x02 = Breathing                      |
+| Byte 5   | Primary Color Component (G or R depending on GRB/RGB swap)  |
+| Byte 6   | Secondary Color Component (R or G)                          |
+| Byte 7   | Blue Color Component (B)                                    |
+| Byte 8   | Speed / Animation Rate (0-255, default 128)                 |
+| Byte 9   | Brightness Level (0-255, fixed to 255)                      |
+| Byte 10+ | Zero padding up to 65 bytes                                 |
++----------+-------------------------------------------------------------+
+```
+
+### 7.2. Defensive Programming & Bus Integrity
+1. **FIFO Drain Loop (Residual Response Skipping)**:
+   USB HID read queues frequently buffer stale responses from preceding transactions or external bus queries. `BoardRgb.cs` includes a 6-attempt drain loop with 450ms timeouts:
+   ```csharp
+   for (int attempt = 0; attempt < 6; attempt++) {
+       var input = new byte[65];
+       var read = port.ReadAsync(input, 0, input.Length);
+       if (!read.Wait(450)) throw new IOException("ASRock read timeout");
+       // Align frame if Report ID is stripped by host controller driver
+       if (read.Result > 10 && input[0] == 0 && input[1] == 0xA6)
+           Buffer.BlockCopy(input, 1, input, 0, read.Result - 1);
+       if (read.Result >= 10 && input[0] == 0xA6 && input[3] == (byte)address)
+           return input;
+   }
+   ```
+2. **Preemptive Process Conflict Quarantine**:
+   Vendor software like `AsrPolychromeRGB.exe` runs high-frequency background polling loops. Concurrent reads corrupt the shared USB endpoint's FIFO buffer. RGB Studio inspects the active process table (`Process.GetProcessesByName`) and alerts the user rather than corrupting device state.
+3. **Roundtrip Write Verification**:
+   Every `SetZone` (command `0x10`) is followed by an immediate `ReadZone` (`0x11`) command. The returned payload is compared byte-by-byte with expected RGB/mode values. Any divergence triggers an explicit warning (`"散热器 · 已发送但读回不一致"`), guaranteeing that configuration states in UI strictly match physical microcontroller registers.
+
+### 7.3. Why Not Just Rely on OpenRGB?
+While OpenRGB is effective for device detection, RGB Studio employs a hybrid design:
+* **Deterministic Motherboard I/O**: Direct Win32 SetupDi implementation avoids OpenRGB SDK IPC overhead, adds active process conflict mitigation, and enforces roundtrip readback verification.
+* **Dual-Channel DRAM Phase Locking**: OpenRGB applies colors asynchronously to RAM sticks. Because dual DIMMs have separate hardware crystal oscillators, their visual phases drift out of sync within minutes. `MemoryShow.cs` runs a master software clock with continuous phase resynchronization to keep both sticks aligned.

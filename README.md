@@ -55,6 +55,42 @@ The compiled standalone binary is placed in `release/RGB Studio.exe`.
 
 ---
 
+## Deep Dive: Low-Level Hardware Protocol & Engineering Notes
+
+### 1. ASRock Polychrome USB HID Protocol (VID 0x26CE / PID 0x01A2)
+RGB Studio communicates directly with the onboard Nuvoton/ASRock USB microcontroller over a 65-byte raw USB HID report descriptor rather than relying on high-overhead SDK wrappers:
+
+```text
++----------+-------------------------------------------------------------+
+| Offset   | Field Description & Protocol Semantics                     |
++----------+-------------------------------------------------------------+
+| Byte 0   | 0x00: USB HID Report ID                                    |
+| Byte 1   | Command: 0x10 = Set Zone, 0x11 = Read Zone, 0x14 = Header   |
+| Byte 2   | Sub-command / Reserved (0x00)                               |
+| Byte 3   | Target Zone Index (0x00 - 0x07: ARGB Header, RGB, PCH, IO) |
+| Byte 4   | Mode: 0x01 = Static, 0x02 = Breathing                      |
+| Byte 5   | Primary Color Component (G or R depending on GRB/RGB swap)  |
+| Byte 6   | Secondary Color Component (R or G)                          |
+| Byte 7   | Blue Color Component (B)                                    |
+| Byte 8   | Speed / Animation Rate (0-255, default 128)                 |
+| Byte 9   | Brightness Level (0-255, fixed to 255)                      |
+| Byte 10+ | Zero padding to 65 bytes                                    |
++----------+-------------------------------------------------------------+
+```
+
+### 2. Defensive Engineering & Bus Integrity
+* **FIFO Drain & Residual Frame Skipping**: USB HID read buffers frequently contain stale responses from previous transactions. A loop (up to 6 iterations with 450ms timeouts) drains mismatched packets until the header `0xA6` with matching target address is acknowledged.
+* **Process Conflict Quarantine**: ASRock's official `AsrPolychromeRGB.exe` daemon constantly polls and overrides the controller state, polluting the shared HID read queue. RGB Studio proactively checks active process tables and halts writes to prevent bus contention.
+* **Post-Write Readback Verification**: After writing zone configurations via `0x10`, RGB Studio executes a roundtrip `0x11` query to verify target bytes in hardware registers (`state[5..7] == target_rgb`), ensuring zero packet drops under high I/O load.
+
+### 3. Why Not Just Rely on OpenRGB?
+While OpenRGB offers broad device support, its standard driver model lacks:
+1. **Host process concurrency guards**: OpenRGB collides with running vendor daemons like `AsrPolychromeRGB.exe`, causing queue corruption.
+2. **Deterministic write verification**: It assumes USB HID writes always succeed, leaving dropped frames unhandled.
+3. **Dual-Channel DRAM Clock Drift**: Dual DIMMs have independent crystal oscillators; asynchronous updates cause lighting phase drift within minutes. RGB Studio's `MemoryShow.cs` runs a master software clock with continuous phase resynchronization to keep both sticks aligned.
+
+---
+
 ## Documentation Links
 
 * [**中文详细说明书 (README_CN.md)**](README_CN.md): 包含功能演示、接口对比、各主板品牌接线方案与排错指南。

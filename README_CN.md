@@ -191,3 +191,42 @@ build.bat
 C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:winexe /optimize+ /out:"release\RGB Studio.exe" /reference:System.dll,System.Core.dll,System.Drawing.dll,System.Windows.Forms.dll,System.Web.Extensions.dll src\BoardRgb.cs src\LightingPanel.cs src\MemoryLighting.cs src\MemoryShow.cs src\RgbStudio.cs src\RigPreview.cs src\SceneCard.cs
 ```
 编译成功后，产物将自动输出至 `release\RGB Studio.exe`。
+
+---
+
+## 7. 协议深度解析与底层工程设计 (Protocol Deep Dive)
+
+### 7.1. 华擎 Polychrome USB HID 协议 (VID 0x26CE / PID 0x01A2)
+RGB Studio 通过 Win32 SetupDi 设备枚举接口与 unbuffered `CreateFile` 直接与板载 Nuvoton/ASRock USB 微控制器进行 65 字节 Raw HID 报告交互，摒弃笨重缓慢的原厂 SDK：
+
+```text
++----------+-------------------------------------------------------------+
+| 字节偏移 | 字段定义与协议说明                                          |
++----------+-------------------------------------------------------------+
+| Byte 0   | 0x00: USB HID Report ID                                     |
+| Byte 1   | 指令类型: 0x10 = 写入Zone, 0x11 = 读取Zone, 0x14 = 读取Header|
+| Byte 2   | 子指令 / 保留位 (默认 0x00)                                 |
+| Byte 3   | 目标 Zone 索引 (0x00 - 0x07: 涵盖 ARGB 接口、RGB、PCH、IO罩)|
+| Byte 4   | 发光模式: 0x01 = 常亮 (Static), 0x02 = 呼吸 (Breathing)     |
+| Byte 5   | 第一通道分量 (依寄存器读回的线序交换确定为 G 或 R)          |
+| Byte 6   | 第二通道分量 (R 或 G)                                       |
+| Byte 7   | 蓝色通道分量 (B)                                            |
+| Byte 8   | 动态速率 / 频率 (0-255, 默认值 128)                         |
+| Byte 9   | 亮度等级 (0-255, 满亮度 255)                                |
+| Byte 10+ | 补零对齐至 65 字节                                          |
++----------+-------------------------------------------------------------+
+```
+
+### 7.2. 防御性硬件编程与并发时序保护
+1. **残余帧排空循环 (FIFO Drain Loop)**：
+   USB HID 接收缓冲区常会留存来自旧请求或外部总线查询的残余数据包。`BoardRgb.cs` 实现了最多 6 次重试的排空循环（每次 450ms 超时），直到匹配到报头 `0xA6` 且地址字节一致的响应帧为止。
+2. **原厂守护进程抢占隔离**：
+   华擎原厂的 `AsrPolychromeRGB.exe` 后台会高频轮询同一控制器并覆盖状态，导致 HID 读队列受到严重污染。RGB Studio 在执行原生 I/O 前主动探测进程列表，阻断总线冲突。
+3. **写后读回闭环验证 (Roundtrip Verification)**：
+   每次执行 `0x10`（SetZone）下发灯效后，紧接着发起 `0x11`（ReadZone）查询硬件寄存器状态，将回读的 RGB 分量与模式逐字节核对；只有全部 Zone 校验通过才返回验证成功，确保 UI 状态与硬件微控制器寄存器完全吻合。
+
+### 7.3. 为什么不直接调 OpenRGB？
+虽然 OpenRGB 提供了优秀的跨硬件扫描能力，但在实际工程应用中存在以下痛点：
+* **无进程并发保护**：OpenRGB 无法防御后台原厂驱动抢占，极易造成 USB FIFO 缓冲区脏读崩溃。
+* **无闭环状态核验**：OpenRGB 假设 USB 写入永远成功，缺乏丢包和重发机制。
+* **DDR5 内存双通道晶振漂移问题**：DDR4/DDR5 双条内存插槽具有独立的硬件晶振，直接异步发送控制指令会在数分钟内出现色彩相位错位。RGB Studio 的 `MemoryShow.cs` 采用统一的高精度软件时钟源驱动，连续补偿相位偏差，保证双通道内存绝对同步。
