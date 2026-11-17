@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/cover.png" alt="RGB-Studio" width="100%"></p>
+
 # RGB Studio Manual: Architecture, Wiring Schemes, and Debugging
 
 **RGB Studio** is a unified, lightweight, high-performance PC lighting orchestrator engineered to bridge fragmented RGB/ARGB hardware ecosystems. Without running bloated vendor suites, RGB Studio seamlessly synchronizes chassis fans (NZXT CAM), motherboard ARGB/RGB headers (ASRock, ASUS, MSI, Gigabyte), and dual-channel DDR4/DDR5 memory modules in a unified desktop interface with real-time per-LED animation previews and 100 handcrafted design presets.

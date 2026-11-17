@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/cover.png" alt="RGB-Studio" width="100%"></p>
+
 # RGB Studio
 
 <div align="center">
