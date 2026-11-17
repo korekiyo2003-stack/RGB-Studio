@@ -1,4 +1,6 @@
 @echo off
-pushd scripts
-call build.bat
+pushd "%~dp0scripts"
+call "%~dp0scripts\build.bat"
+set RC=%ERRORLEVEL%
 popd
+exit /b %RC%

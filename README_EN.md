@@ -19,7 +19,7 @@
 
 * **Universal Multi-Vendor Synchronization**:
   * **Chassis Fan Arrays (Bottom, Side, Rear)**: Controlled via lightweight, zero-overhead process triggers hooked directly into **NZXT CAM**.
-  * **Motherboard RGB/ARGB Headers (CPU Air/AIO Cooler, Motherboard Shrouds)**: Low-level native USB HID protocol driving onboard microcontrollers (**ASRock, ASUS, MSI, Gigabyte**).
+  * **Motherboard RGB/ARGB Headers (CPU Air/AIO Cooler, Motherboard Shrouds)**: Low-level native USB HID protocol driving the **ASRock Polychrome USB** controller (VID 26CE / PID 01A2). ASUS, MSI and Gigabyte boards are only detected, not driven; use OpenRGB for them.
   * **Dual-Channel DDR4 / DDR5 Memory**: Powered by OpenRGB SDK with an internal high-precision software clock engine (`MemoryShow.cs`) that completely eliminates dual-DIMM hardware timer drift.
 * **100 Handcrafted Lighting Scenes**: Organized into curated aesthetic palettes (Rhythm, Cool, Pink-Purple, Cyan-Green, Warm, Neutral). Supports gradients, breathing, pulse, strobe, alternating colors, and fixed lighting.
 * **Interactive Dynamic Rig Canvas**: Double-buffered GDI+ vector rendering of your PC chassis, rendering individual fan LEDs, cooler fans, and dual RAM sticks in real-time at 30–60 FPS.

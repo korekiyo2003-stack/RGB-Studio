@@ -3,9 +3,8 @@
 <div align="center">
 
 **Universal PC Lighting Synchronizer & Preset Orchestrator**  
-*NZXT CAM · ASRock / ASUS / MSI / Gigabyte Motherboard ARGB · Dual-Channel DDR4/DDR5 RAM*
+*NZXT CAM · ASRock Polychrome USB · Dual-Channel DDR4/DDR5 RAM (OpenRGB SDK)*
 
-[![Build and Verify](https://github.com/korekiyo2003-stack/RGB-Studio/actions/workflows/build.yml/badge.svg)](https://github.com/korekiyo2003-stack/RGB-Studio/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(64--bit)-lightgrey.svg)](release/)
 [![Scenes: 100 Handcrafted Presets](https://img.shields.io/badge/Scenes-100%20Presets-gradient.svg)](presets/scenes.json)
@@ -22,7 +21,7 @@
 
 **RGB Studio** is a unified, lightweight, and bloat-free desktop control hub for PC enthusiasts. It bridges fragmented vendor lighting ecosystems into a single elegant interface:
 * **Chassis Fans (Bottom, Side, Rear)**: Controlled via zero-overhead process triggers hooked into **NZXT CAM**.
-* **Motherboard RGB/ARGB Headers (CPU Air/AIO Cooler, LED Shrouds)**: Low-level native USB HID protocol driving onboard microcontrollers (**ASRock Polychrome USB**, **ASUS AURA**, **MSI Mystic Light**, **Gigabyte RGB Fusion**).
+* **Motherboard RGB/ARGB Headers (CPU Air/AIO Cooler, LED Shrouds)**: Low-level native USB HID protocol driving onboard microcontrollers (**ASRock Polychrome USB**, VID 26CE / PID 01A2). Other vendors (ASUS AURA, MSI Mystic Light, Gigabyte RGB Fusion) are detected and shown in the status line but are **not driven** yet; use OpenRGB for them.
 * **Dual-Channel Memory (DDR4 / DDR5)**: Synchronous high-precision software clock engine over OpenRGB SDK, eliminating dual-DIMM crystal oscillator timer drift.
 * **100 Curated Design Scenes**: Handcrafted color harmonies across 6 theme categories (Rhythm, Cool, Pink-Purple, Cyan-Green, Warm, Neutral).
 * **Real-time Animated Canvas**: Dynamic GDI+ vector chassis simulator showing per-LED wave, pulse, breathing, and chasing patterns.

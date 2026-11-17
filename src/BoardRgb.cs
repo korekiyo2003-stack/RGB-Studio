@@ -6,6 +6,9 @@ using Microsoft.Win32.SafeHandles;
 
 internal static class BoardRgb
 {
+    // Only the ASRock Polychrome USB controller speaks the packets below. Never open other
+    // vendors' HID devices here: they would receive ASRock writes.
+    private const string DeviceId = "vid_26ce&pid_01a2";
     private const int ConnectorMask = 0x8D;
     private const int OnboardMask = 0x70;
     private const int ReadHeader = 0x14;
@@ -23,7 +26,7 @@ internal static class BoardRgb
             return "散热器未切换 · Polychrome 开着时主板灯归它管，关掉它再点应用";
         using (var handle = Open())
         {
-            if (handle == null) return string.Format("{0} · 控制器不可用", MotherboardDetector.Current.ProtocolName);
+            if (handle == null) return "散热器 · 控制器不可用";
             using (var port = new FileStream(handle, FileAccess.ReadWrite, 65, true))
             {
                 var present = Exchange(port, ReadHeader, 1)[4];
@@ -46,8 +49,8 @@ internal static class BoardRgb
                     if (state[3] == zone && state[4] == mode && state[5] == first &&
                         state[6] == second && state[7] == b) checks |= 1 << zone;
                 }
-                if (enabled == 0 || checks != enabled) return string.Format("{0} · 已发送但读回不一致", MotherboardDetector.Current.ProtocolName);
-                return breathing ? string.Format("{0} · 呼吸已验证", MotherboardDetector.Current.ProtocolName) : string.Format("{0} · 常亮已验证", MotherboardDetector.Current.ProtocolName);
+                if (enabled == 0 || checks != enabled) return "散热器 · 已发送但读回不一致";
+                return breathing ? "散热器 · 呼吸已验证" : "散热器 · 常亮已验证";
             }
         }
     }
@@ -95,7 +98,7 @@ internal static class BoardRgb
                     Marshal.WriteInt32(detail, IntPtr.Size == 8 ? 8 : 6);
                     if (!SetupDiGetDeviceInterfaceDetail(devices, ref entry, detail, required, out required, IntPtr.Zero)) continue;
                     string path = Marshal.PtrToStringUni(IntPtr.Add(detail, 4));
-                    if (!MotherboardDetector.MatchesDevice(path)) continue;
+                    if (path.IndexOf(DeviceId, StringComparison.OrdinalIgnoreCase) < 0) continue;
                     var handle = CreateFile(path, 0xC0000000, 3, IntPtr.Zero, 3, 0x40000000, IntPtr.Zero);
                     if (!handle.IsInvalid) return handle;
                     handle.Dispose();

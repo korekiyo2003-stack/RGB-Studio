@@ -11,7 +11,9 @@ from pathlib import Path
 USER = Path(os.environ["APPDATA"]) / "NZXT CAM" / "DataStorage" / "latest" / "user"
 OLD = [Path(os.environ["APPDATA"]) / "NZXT CAM" / "DataStorage" / "4.76.8" / "user",
        Path(os.environ["APPDATA"]) / "NZXT CAM" / "DataStorage" / ".last-known-good" / "user"]
-OLD += sorted((Path(r"D:\LocalAI\qwen-fill\lights\backups")).glob("*/cam"), reverse=True)
+# Optional: a folder of your own CAM backups (<stamp>/cam), via RGB_STUDIO_BACKUPS.
+if os.environ.get("RGB_STUDIO_BACKUPS"):
+    OLD += sorted(Path(os.environ["RGB_STUDIO_BACKUPS"]).glob("*/cam"), reverse=True)
 
 
 def load(p):
