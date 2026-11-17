@@ -22,7 +22,7 @@ public static partial class MemoryLighting
 
     internal struct Px { public int R, G, B; public double Level; }
 
-    internal const int Leds = 8;
+    internal const int Leds = 8;           // preview size; the hardware gets as many as each stick has
     private static readonly double[] Periods = { 1.3, 2.0, 3.0, 4.4, 6.2 };
     internal static double Gamma = 2.2;   // 1 = send scene colours as they are; larger = deeper colours
 
@@ -62,6 +62,12 @@ public static partial class MemoryLighting
     // the preview can dim towards its background while the hardware gets a linear-light value.
     internal static Px[][] Frame(Show show, double t)
     {
+        return Frame(show, t, new[] { Leds, Leds });
+    }
+
+    // Same, for any number of sticks with any number of LEDs each (OpenRGB reports both).
+    internal static Px[][] Frame(Show show, double t, int[] ledsPerStick)
+    {
         var c = show.Points.Select(hex => {
             int v = int.Parse(hex, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
             return new[] { (v >> 16) & 255, (v >> 8) & 255, v & 255 };
@@ -69,14 +75,15 @@ public static partial class MemoryLighting
         double period = Periods[Math.Max(0, Math.Min(4, show.Speed))];
         double p = t / period - Math.Floor(t / period);
         int turn = (int)Math.Floor(t / period);
-        var sticks = new Px[2][];
-        for (int s = 0; s < 2; s++)
+        var sticks = new Px[ledsPerStick.Length][];
+        for (int s = 0; s < ledsPerStick.Length; s++)
         {
+            int Leds = Math.Max(1, ledsPerStick[s]);
             sticks[s] = new Px[Leds];
             for (int i = 0; i < Leds; i++)
             {
                 int at = show.Reverse ? Leds - 1 - i : i;
-                Px px = Along(c, i / (double)(Leds - 1), false);
+                Px px = Along(c, i / (double)Math.Max(1, Leds - 1), false);
                 double level = 1;
                 switch (show.Effect)
                 {
@@ -128,7 +135,7 @@ public static partial class MemoryLighting
                         break;
                     case "Bounce":
                     {
-                        double head = (Leds - 1) * (1 - Math.Abs(2 * p - 1));
+                        double head = (Leds - 1) * (1 - Math.Abs(2 * p - 1.0));
                         level = Math.Max(0.04, Math.Exp(-(at - head) * (at - head) / 1.6));
                         break;
                     }
@@ -136,9 +143,9 @@ public static partial class MemoryLighting
                     {
                         // The sticks answer each other: one breathes in the first half, the other in the second.
                         double half = 2 * p - Math.Floor(2 * p);
-                        bool mine = (p < 0.5) == (s == 0);
+                        bool mine = (p < 0.5) == (s % 2 == 0);
                         level = mine ? 0.06 + 0.94 * Math.Pow(Math.Sin(Math.PI * half), 2) : 0.06;
-                        px = Along(c, (s == 0 ? i : Leds - 1 - i) / (double)(Leds - 1), false);
+                        px = Along(c, (s % 2 == 0 ? i : Leds - 1 - i) / (double)Math.Max(1, Leds - 1), false);
                         break;
                     }
                     case "Heartbeat":
@@ -224,7 +231,7 @@ public static partial class MemoryLighting
                 if (devices == null || fresh || sinceDirect.Elapsed.TotalSeconds > 20)
                 {
                     devices = sdk.MemoryDevices();
-                    if (devices.Count != 2) throw new IOException("只找到 " + devices.Count + "/2 条");
+                    if (devices.Count == 0) throw new IOException("未找到内存灯（OpenRGB 没有列出 DRAM 设备）");
                     foreach (Device device in devices) sdk.Send(device.Id, 1100, new byte[0]);
                     sinceDirect.Restart();
                     fresh = true;
@@ -233,7 +240,7 @@ public static partial class MemoryLighting
                 bool moving = show.Effect != "Static" && show.Effect != "Off";
                 if (moving || fresh)
                 {
-                    Px[][] frame = Frame(show, clock.Elapsed.TotalSeconds);
+                    Px[][] frame = Frame(show, clock.Elapsed.TotalSeconds, devices.Select(d => d.Colors.Length).ToArray());
                     for (int k = 0; k < devices.Count; k++)
                         sdk.WriteColors(devices[k].Id, frame[k].Take(devices[k].Colors.Length).Select(Wire).ToArray());
                     FramesSent++;
@@ -251,7 +258,7 @@ public static partial class MemoryLighting
                 {
                     reported = generation;
                     showError = error is SocketException ? "灯控服务未连接" : error is TimeoutException ? "灯控服务响应超时"
-                        : error.Message.StartsWith("只找到") ? error.Message : "灯控通信失败";
+                        : error.Message.StartsWith("未找到") ? error.Message : "灯控通信失败";
                     FirstFrame.Set();
                 }
                 System.Threading.Thread.Sleep(3000);

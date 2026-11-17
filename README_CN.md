@@ -1,234 +1,66 @@
 <p align="center"><img src="docs/cover.png" alt="RGB-Studio" width="100%"></p>
 
-# RGB Studio 使用说明书与硬件接入调试指南
+# RGB Studio
 
-RGB Studio 是一款面向 PC 硬件玩家的高性能、无后台臃肿组件的统一整机神光同步中枢系统。它打破了不同品牌厂商（NZXT、华擎/华硕/微星/技嘉、内存厂商）之间的生态壁垒，将机箱风扇、主板 ARGB 接口（CPU 散热器/灯条）以及双通道 DDR4/DDR5 内存的灯效调度集中于统一的直观桌面界面中，并提供 100 套经由专业色彩搭配的手工精调灯光方案与实时动画机箱预览。
+**一个 Windows 程序，用 100 套联动场景同时切换机箱风扇、CPU 散热器（主板 ARGB）和内存的灯光。**
 
----
+[English](README.md) · [日本語](README_JA.md) · [Русский](README_RU.md) · [架构（英文）](docs/architecture.md) · [排错（英文）](docs/debugging_guide.md)
 
-## 目录
-1. [功能特性](#1-功能特性)
-2. [快速开始与免安装运行](#2-快速开始与免安装运行)
-3. [详细使用说明](#3-详细使用说明)
-4. [硬件接口搭配与主板接线方案](#4-硬件接口搭配与主板接线方案)
-5. [系统调试与故障排除方法](#5-系统调试与故障排除方法)
-6. [从源码构建与打包](#6-从源码构建与打包)
 
 ---
 
-## 1. 功能特性
+## 能控制什么，各自需要什么
 
-* **跨品牌统一调度**：
-  * **机箱风扇群（底排、侧排、后置）**：通过无感知进程钩子直连 **NZXT CAM**，无需云端或付费插件。
-  * **主板 ARGB/RGB 接口（CPU 风冷/水冷散热器、主板发光装甲）**：通过底层 USB HID 直通 **华擎（ASRock）Polychrome USB** 控制器（VID 26CE / PID 01A2）。华硕/微星/技嘉主板只做识别显示，暂不直接驱动，请用 OpenRGB。
-  * **内存双通道同步（DDR4 / DDR5）**：通过 OpenRGB SDK 直通内存 SPD SMBus 总线，内置集中式高精度软件时钟泵，彻底根除双条内存灯效时钟漂移脱节问题。
-* **100 套专业设计灯效库**：包含「律动」「冷色」「粉紫」「青绿」「暖色」「中性」等完整色系，支持渐变、脉冲、常亮、柔和呼吸、慢闪、节拍闪、双色交替等模式。
-* **实时动态机箱预览 Canvas**：双缓冲 GDI+ 自绘机箱示意图，每颗 LED 灯珠的流光动画、色彩过渡与实际机箱毫秒级同步。
-* **自定义右侧编辑面板**：可针对当前场景独立修改 CPU 风扇灯效、风扇与内存色组（场景原色、主色统一、撞色点缀、柔雾浅色、Hex 自定义调色）。
-* **自动化定时轮换**：支持 5分钟、10分钟、15分钟、30分钟、60分钟随机无重复轮换，支持勾选指定方案参与轮换，支持最小化至系统托盘。
+三个部分互相独立，都是可选的：程序用它找到的部分，每部分单独显示状态，只有其中一部分硬件的电脑也能用。
 
----
-
-## 2. 快速开始与免安装运行
-
-### 系统运行要求
-* 操作系统：Windows 10 / Windows 11 (64-bit)
-* 运行环境：.NET Framework 4.5 及以上（Windows 10/11 均内置，无需额外下载）
-* 依赖服务：
-  * NZXT CAM（若需控制接在 NZXT 控制器上的机箱风扇）
-  * OpenRGB 后台服务（若需控制 DDR4/DDR5 内存双条同步）
-
-### 运行步骤
-1. 下载仓库中的 `release` 目录（或直接克隆本项目）。
-2. 确保 `release` 目录下包含：
-   * `RGB Studio.exe`
-   * `MemoryLighting.dll`
-   * `scenes.json`
-   * `Triggers/` 文件夹（内含触发器二进制）
-3. 双击 `RGB Studio.exe` 启动程序。
-4. 程序将自动居中显示主面板，并在系统托盘生成专属图标。
-
----
-
-## 3. 详细使用说明
-
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│  RGB Studio               100 套灯效 · 6 种模式         [暂停轮换] [随机] │
-├──────────────────────────────────────┬─────────────────────────────────┤
-│ [全部灯效 ▼]                          │  【灯光动态预览】                 │
-│ ┌──────────────────────────────────┐ │  ┌───────────────────────────┐  │
-│ │ 霓虹双轨  /  律动   [参与轮换☑] [应用]│ │  │   [机箱风扇环形流光与内存]   │  │
-│ │ [底排 渐变] [侧排 脉冲] [后置 呼吸] │ │  └───────────────────────────┘  │
-│ ├──────────────────────────────────┤ │  散热器 · 呼吸已验证            │
-│ │ 冰川蓝    /  冷色   [参与轮换☑] [应用]│ │  CPU 风扇灯效     风扇与内存色组│
-│ │ [底排 渐变] [侧排 呼吸] [后置 常亮] │ │  [柔和呼吸 ▼]    [撞色点缀   ▼]│
-│ └──────────────────────────────────┘ │  [色块1][色块2]    [#A8D8F0] [确定]│
-│                                      │  [       保存并应用       ]     │
-└──────────────────────────────────────┴─────────────────────────────────┘
-```
-
-### 3.1. 切换与应用预设场景
-* **手动应用**：在左侧列表中浏览场景（可通过下拉框按色系分类筛选），点击右侧卡片上的 **「应用」** 按钮。
-  * NZXT CAM 随后会自动切换风扇灯光。
-  * 主板 ARGB 散热器将同步载入对应色彩与呼吸/闪烁速度。
-  * 内存条将同步渲染对应的四点渐变或动态跑光。
-* **定时自动轮换**：
-  * 点击顶部 **「开启轮换 / 暂停轮换」**。
-  * 在轮换间隔下拉框中选择时间（5 / 10 / 15 / 30 / 60 分钟）。
-  * 可以在卡片上勾选或取消 **「参与轮换」** 复选框，定制自己的专属轮换池。
-
-### 3.2. 实时微调与调色板
-* 选中某个场景后，右侧面板会展示当前的硬件状态与配色详情：
-  1. **CPU 风扇灯效**：可选「场景推荐」「常亮」「柔和呼吸」「慢闪」「节拍闪」「双色交替」「关灯」。
-  2. **风扇与内存色组**：可选「场景原色」「主色统一」「撞色点缀」「柔雾浅色」「自定义」。
-  3. **色块微调**：点击色块可以直接输入 Hex 16进制色号进行精确赋值。
-  4. 点击 **「保存并应用」**，配置将即时写入物理硬件并持久化保存。
-
-### 3.3. 托盘与后台运行
-* 点击 **「隐藏到托盘」** 或关闭主窗口时，RGB Studio 将安静驻留于系统托盘。
-* 双击托盘图标可瞬间恢复主界面；右键托盘图标可快速进行「随机切换」或「退出程序」。
-
----
-
-## 4. 硬件接口搭配与主板接线方案
-
-不同品牌主板与机箱在物理引脚和供电能力上存在差异，请严格参照以下接线方案：
-
-```
-       5V 3针 ARGB (数字可寻址)                   12V 4针 RGB (模拟非寻址)
-      ┌───┬───┬───┬───┐                              ┌───┬───┬───┬───┐
-      │ 1 │ 2 │ X │ 3 │                              │ 1 │ 2 │ 3 │ 4 │
-      └───┴───┴───┴───┘                              └───┴───┴───┴───┘
-     +5V  DATA 空  GND                              +12V  G   R   B
-     (中间第3针物理防呆缺孔)                         (全条灯珠只能同色显示)
-```
-
-### 4.1. 核心接口规格对比
-| 规格类型 | 工作电压 | 信号协议 | 最大电流/功耗 | 控制特性 |
-| :--- | :--- | :--- | :--- | :--- |
-| **5V 3针 ARGB** | **+5V DC** | WS2812B / SK6812 单线 NRZ 串行 (800kHz) | **3.0A / 15W** (约 50-60 颗灯珠) | 单颗灯珠独立变色、流动、渐变、追逐 |
-| **12V 4针 RGB** | **+12V DC** | 模拟 PWM 低端 MOS 晶体管分流接地 | **2.0A - 3.0A / 24W - 36W** | 整条灯带同一时刻仅能显示单一整体色 |
-
-> [!CAUTION]
-> **绝对禁忌**：严禁将 5V 3针 ARGB 插头强行插入 12V 4针 RGB 插座！12V 高压会瞬间击穿 5V LED 控制芯片并烧毁主板接口线路！
-
-### 4.2. 各主流主板品牌的接入方案
-
-#### ① 华擎（ASRock）主板方案（原生直通支持最佳）
-* **接口标识**：`ADDR_LED1`、`ADDR_LED2`、`ADDR_LED3`（5V 3针）；`RGB_LED1`（12V 4针）。
-* **硬件原理**：板载新唐（Nuvoton）NUC121 USB 控制器（`VID 0x26CE, PID 0x01A2`）。
-* **接线推荐**：
-  * CPU 风冷/水冷散热器的 ARGB 线接入 `ADDR_LED1`。
-  * 机箱其余 ARGB 装饰件（如发光显卡支架）接入 `ADDR_LED2` 或 `ADDR_LED3`。
-* **软件搭配**：RGB Studio 内置原生 HID 驱动，**无需安装或打开 Polychrome**（打开反而会冲突）。
-
-#### ② 华硕（ASUS ROG / TUF / Prime）主板方案
-* **接口标识**：`ADD_GEN 2_1`、`ADD_GEN 2_2`（5V 3针）；`AURA RGB`（12V 4针）。
-* **硬件原理**：板载 AURA USB 控制器（ITE IT8297 等）。
-* **接入方案**：散热器接 `ADD_GEN 2_1`。RGB Studio 通过本地 OpenRGB 服务协同控制。需在任务管理器中关闭 Armoury Crate / LightingService 服务以释放总线。
-
-#### ③ 微星（MSI MAG / MPG / MEG / PRO）主板方案
-* **接口标识**：`JARGB_V2_1`、`JARGB_V2_2`（5V 3针）；`JRGB1`（12V 4针）。
-* **接入方案**：接入 `JARGB_V2`。需确保 MSI Center / Mystic Light 处于关闭状态，通过 OpenRGB 后台总线分发色彩。
-
-#### ④ 技嘉（Gigabyte / AORUS）主板方案
-* **接口标识**：`D_LED1`、`D_LED2`（5V 3针）；`LED_C1`、`LED_C2`（12V 4针）。
-* **注意**：部分老款技嘉主板带有 5V/12V 跳线帽，插线前必须核对跳线位置为 5V！
-* **接入方案**：关闭 RGB Fusion，由 OpenRGB 后台提供驱动通讯。
-
-### 4.3. 大量机箱风扇的供电安全方案（外接集线器 HUB）
-* 单个主板 ARGB 接口一般限制为 3A（15W），若串联超过 4~5 把 ARGB 风扇（每把约 0.4A~0.6A），白色高光下会导致电压拉低、发热甚至过流保护。
-* **最佳方案**：使用 **SATA 供电的 ARGB 集线器**：
-  * 集线器信号线连接至主板 `ADDR_LED`（仅传输 Data 数据信号与地线）。
-  * 集线器供电线直连电源 SATA 供电口（提供独立纯净的 5V 4.5A 强劲电流）。
-  * 多个风扇全部插在集线器输出口。
-
-### 4.4. 内存双通道时钟防漂移方案
-* 内存条（如 ADATA XPG 龙耀、海盗船、芝奇、金士顿）内部没有共享时钟线，靠自身振荡器计数。
-* RGB Studio 采用独家**中心化软件时钟泵机制**：将两条内存强制置于 Direct 模式，主程序后台线程以固定帧率向双条内存广播完全相同的瞬时数据帧，彻底解决硬件不同步的问题。
-
----
-
-## 5. 系统调试与故障排除方法
-
-### 5.1. 常见故障自查表
-| 故障现象 | 可能原因 | 解决办法 |
+| 部分 | 控制方式 | 需要 |
 | :--- | :--- | :--- |
-| **散热器 · 控制器没有响应** | 原厂灯控软件（Polychrome/奥创等）后台抢占了 USB HID 句柄 | 在托盘与任务管理器中彻底结束 `AsrPolychromeRGB.exe` 等原厂进程，然后点击 RGB Studio 中的「保存并应用」 |
-| **内存 · 灯控服务未连接** | OpenRGB 后台服务未在 6743 端口监听 | 启动 OpenRGB 服务：`OpenRGB.exe --server -p 6743`，或运行 `scripts/sync_check.py` 检查连接 |
-| **CAM 未确认当前场景** | NZXT CAM 软件未开启或 Triggers 文件夹缺失 | 启动 NZXT CAM；确保 `release/Triggers` 文件夹存在且内含 `RGB-*.exe`；若配置丢失可运行 `scripts/repair_cam_lighting.py` |
-| **灯光颜色反转（红变绿/蓝）** | LED 灯条线序为 GRB 而非常见 RGB | 华擎主板会自动从寄存器读回线序并纠正；其他主板可在 OpenRGB 设备属性中更改 Color Order |
-| **程序提示权限不足** | Windows 对某些总线驱动的访问限制 | 右键 `RGB Studio.exe` 选择「以管理员身份运行」 |
+| **CPU 散热器 / 主板 ARGB** | 直接向华擎 Polychrome 控制器发送 65 字节 USB HID 报文，再逐通道读回校验 | 带 **VID 26CE / PID 01A2** 控制器的华擎主板；OpenRGB 自带的 `hidapi-hotplug.dll`；Polychrome 已退出 |
+| **内存**（DDR4 / DDR5） | 所有内存条切到 Direct 模式，由一个时钟线程通过 OpenRGB SDK 推送每一帧，多条之间不会漂移 | 以 SDK 服务器方式运行在 `127.0.0.1:6743` 的 OpenRGB；条数、品牌不限（OpenRGB 识别为 DRAM 即可） |
+| **NZXT 集线器上的机箱风扇** | 启动一个很小的触发程序，NZXT CAM 的 Profile Sync 切到对应配置，再从 CAM 日志确认 | NZXT CAM，以及用 `scripts/setup_cam.py` 做一次配置 |
 
-### 5.2. 调试命令与诊断工具
-仓库 `scripts` 与 `src` 目录下附带了一整套轻量诊断脚本：
+华硕、微星、技嘉主板只识别并显示型号，**不控制**。
 
-```powershell
-# 1. 编译并使用主板 ARGB 诊断探针（测试发送纯红色 FF0000）
-C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:exe /reference:System.Management.dll /out:src/BoardProbe.exe src/MotherboardDetector.cs src/BoardRgb.cs src/BoardProbe.cs
-.\src\BoardProbe.exe FF0000
-
-# 2. 诊断内存双通道通讯与时钟延迟
-python scripts/sync_check.py
-
-# 3. 重新生成并批量编译所有 NZXT CAM 触发器文件
-python scripts/build_triggers.py
-```
+**实测环境：** 华擎 B850 Challenger WiFi、NZXT Control Hub（3 个区域）、威刚 DDR5 × 2（ENE 芯片，每条 8 颗灯）。
+没有 CAM 的路径、非 2 条内存、其他品牌内存已经实现并通过编译，但还没在别的硬件上实机验证。
 
 ---
 
-## 6. 从源码构建与打包
+## 安装
 
-RGB Studio 采用纯原生 C# 编写，无需安装数十 GB 的大型 Visual Studio IDE，只要有 Windows 系统自带的 .NET Framework 即可秒级编译：
+1. 运行 `release/RGB Studio.exe`（需 .NET Framework 4.5+，Windows 10/11 自带），免安装。
+2. **散热器和内存（可选）：** 安装 [OpenRGB](https://openrgb.org) 1.0+，然后在管理员 PowerShell 里：
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File scripts\register_openrgb_server.ps1 -OpenRGB "C:\Program Files\OpenRGB\OpenRGB.exe"
+   ```
+   每次登录时会把 OpenRGB 作为本地 SDK 服务器启动。
+3. **NZXT CAM 风扇（可选）：** 按 [`scripts/setup_cam.py`](scripts/setup_cam.py) 开头的 3 步（在 CAM 里建一个模板配置，关掉 CAM），然后：
+   ```powershell
+   python scripts\setup_cam.py --list-channels
+   python scripts\setup_cam.py --channels 0,1,4          # 只预览
+   python scripts\setup_cam.py --channels 0,1,4 --write  # 先备份 CAM 的文件再写入
+   ```
 
-### 一键构建方法
-在项目根目录下直接双击运行 `build.bat`，或者在终端中执行：
+不做第 3 步时，切换场景只改散热器和内存，不动风扇。CAM 在 25 秒内没确认风扇切换时，散热器和内存照常应用，并提示原因。
+
+## 编译
+
 ```cmd
 build.bat
 ```
+只用 .NET Framework 自带的 `csc.exe`（C# 5），不需要 SDK。
 
-### 手动构建命令
-```cmd
-C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:winexe /optimize+ /out:"release\RGB Studio.exe" /reference:System.dll,System.Core.dll,System.Drawing.dll,System.Windows.Forms.dll,System.Web.Extensions.dll,System.Management.dll src\BoardRgb.cs src\LightingPanel.cs src\MemoryLighting.cs src\MemoryShow.cs src\MotherboardDetector.cs src\RgbStudio.cs src\RigPreview.cs src\SceneCard.cs
-```
-编译成功后，产物将自动输出至 `release\RGB Studio.exe`。
+## 技术要点
 
----
+* **写入校验：** 每个散热器通道用 `0x10` 写入后，用 `0x11` 读回，模式、颜色、速度一致才算成功。
+* **冲突检测：** Polychrome 会不停覆盖同一个控制器，它在运行时程序不写入，并提示先退出。
+* **内存同步：** 每条内存上的 ENE 芯片用自己的时钟跑内置灯效，几分钟就会错开。改为 Direct 模式，由一个时钟每秒约 14 帧推给所有内存条；睡眠会丢失 Direct 设置，所以每 20 秒重发一次。
+* **颜色：** 屏幕上选的 sRGB 颜色按 2.2 伽马换算成 LED 的线性亮度，浅色不会发白。
 
-## 7. 协议深度解析与底层工程设计 (Protocol Deep Dive)
+## 致谢
 
-### 7.1. 华擎 Polychrome USB HID 协议 (VID 0x26CE / PID 0x01A2)
-RGB Studio 通过 Win32 SetupDi 设备枚举接口与 unbuffered `CreateFile` 直接与板载 Nuvoton/ASRock USB 微控制器进行 65 字节 Raw HID 报告交互，摒弃笨重缓慢的原厂 SDK：
+华擎 Polychrome USB 和 SDK 协议来自 [OpenRGB](https://gitlab.com/CalcProgrammer1/OpenRGB)（GPL-2.0）的分析。本项目不包含 OpenRGB 的代码，只通过它公开的 SDK 通信。
 
-```text
-+----------+-------------------------------------------------------------+
-| 字节偏移 | 字段定义与协议说明                                          |
-+----------+-------------------------------------------------------------+
-| Byte 0   | 0x00: USB HID Report ID                                     |
-| Byte 1   | 指令类型: 0x10 = 写入Zone, 0x11 = 读取Zone, 0x14 = 读取Header|
-| Byte 2   | 子指令 / 保留位 (默认 0x00)                                 |
-| Byte 3   | 目标 Zone 索引 (0x00 - 0x07: 涵盖 ARGB 接口、RGB、PCH、IO罩)|
-| Byte 4   | 发光模式: 0x01 = 常亮 (Static), 0x02 = 呼吸 (Breathing)     |
-| Byte 5   | 第一通道分量 (依寄存器读回的线序交换确定为 G 或 R)          |
-| Byte 6   | 第二通道分量 (R 或 G)                                       |
-| Byte 7   | 蓝色通道分量 (B)                                            |
-| Byte 8   | 动态速率 / 频率 (0-255, 默认值 128)                         |
-| Byte 9   | 亮度等级 (0-255, 满亮度 255)                                |
-| Byte 10+ | 补零对齐至 65 字节                                          |
-+----------+-------------------------------------------------------------+
-```
+## 许可证
 
-### 7.2. 防御性硬件编程与并发时序保护
-1. **残余帧排空循环 (FIFO Drain Loop)**：
-   USB HID 接收缓冲区常会留存来自旧请求或外部总线查询的残余数据包。`BoardRgb.cs` 实现了最多 6 次重试的排空循环（每次 450ms 超时），直到匹配到报头 `0xA6` 且地址字节一致的响应帧为止。
-2. **原厂守护进程抢占隔离**：
-   华擎原厂的 `AsrPolychromeRGB.exe` 后台会高频轮询同一控制器并覆盖状态，导致 HID 读队列受到严重污染。RGB Studio 在执行原生 I/O 前主动探测进程列表，阻断总线冲突。
-3. **写后读回闭环验证 (Roundtrip Verification)**：
-   每次执行 `0x10`（SetZone）下发灯效后，紧接着发起 `0x11`（ReadZone）查询硬件寄存器状态，将回读的 RGB 分量与模式逐字节核对；只有全部 Zone 校验通过才返回验证成功，确保 UI 状态与硬件微控制器寄存器完全吻合。
-
-### 7.3. 为什么不直接调 OpenRGB？
-虽然 OpenRGB 提供了优秀的跨硬件扫描能力，但在实际工程应用中存在以下痛点：
-* **无进程并发保护**：OpenRGB 无法防御后台原厂驱动抢占，极易造成 USB FIFO 缓冲区脏读崩溃。
-* **无闭环状态核验**：OpenRGB 假设 USB 写入永远成功，缺乏丢包和重发机制。
-* **DDR5 内存双通道晶振漂移问题**：DDR4/DDR5 双条内存插槽具有独立的硬件晶振，直接异步发送控制指令会在数分钟内出现色彩相位错位。RGB Studio 的 `MemoryShow.cs` 采用统一的高精度软件时钟源驱动，连续补偿相位偏差，保证双通道内存绝对同步。
+[MIT](LICENSE)

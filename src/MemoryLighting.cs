@@ -56,11 +56,34 @@ public static partial class MemoryLighting
 
     private sealed class BoardHid : IDisposable
     {
-        private const string HidLibrary = @"C:\Program Files\RGB Studio Memory Backend\hidapi-hotplug.dll";
+        // hidapi from an OpenRGB install. DllImport resolves the bare name to the copy LoadLibrary loaded first.
+        private const string HidLibrary = "hidapi-hotplug.dll";
+        private static readonly bool Loaded = Preload();
         private readonly IntPtr handle;
+
+        [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr LoadLibrary(string path);
+
+        private static bool Preload()
+        {
+            var dirs = new List<string> { AppDomain.CurrentDomain.BaseDirectory };
+            string custom = Environment.GetEnvironmentVariable("OPENRGB_DIR");
+            if (!string.IsNullOrEmpty(custom)) dirs.Add(custom);
+            string programs = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            dirs.Add(Path.Combine(programs, "RGB Studio Memory Backend"));
+            dirs.Add(Path.Combine(programs, "OpenRGB"));
+            dirs.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "OpenRGB"));
+            foreach (string dir in dirs)
+            {
+                string file = Path.Combine(dir, HidLibrary);
+                if (File.Exists(file) && LoadLibrary(file) != IntPtr.Zero) return true;
+            }
+            return false;
+        }
 
         public BoardHid()
         {
+            if (!Loaded) throw new DllNotFoundException(HidLibrary);
             handle = hid_open(0x26CE, 0x01A2, IntPtr.Zero);
             if (handle == IntPtr.Zero) throw new IOException("ASRock RGB controller unavailable");
             hid_winapi_set_write_timeout(handle, 450);
@@ -124,8 +147,8 @@ public static partial class MemoryLighting
                 using (var sdk = new Sdk())
                 {
                     var devices = sdk.MemoryDevices();
-                    if (devices.Count != 2)
-                        return "只找到 " + devices.Count + "/2 条";
+                    if (devices.Count == 0)
+                        return "未找到内存灯（OpenRGB 没有列出 DRAM 设备）";
 
                     var jobs = new List<KeyValuePair<Device, uint[]>>();
                     foreach (Device device in devices)
@@ -271,7 +294,8 @@ public static partial class MemoryLighting
             for (uint id = 0; id < count; id++)
             {
                 Device device = ReadDevice(id);
-                if (device.Type == 1 && device.Name == "ENE DRAM" && device.Colors.Length > 0)
+                // Type 1 is DEVICE_TYPE_DRAM in OpenRGB: ENE, G.Skill, Corsair, Kingston... all qualify.
+                if (device.Type == 1 && device.Colors.Length > 0)
                     result.Add(device);
             }
             return result;

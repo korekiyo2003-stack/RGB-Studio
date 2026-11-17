@@ -20,3 +20,6 @@ obj/
 
 # Build intermediates
 *.pdb
+
+# setup_cam.py backups of CAM files
+backups/

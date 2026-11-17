@@ -38,44 +38,25 @@ Modern motherboards and PC lighting devices predominantly feature two incompatib
 
 ---
 
-## 2. Motherboard Vendor-Specific Architectures & Solutions
+## 2. Motherboard Headers
 
-Different motherboard manufacturers implement onboard lighting controllers through varying hardware interfaces (USB HID, Super I/O, or SMBus).
+RGB Studio drives motherboard headers on **ASRock boards with the Polychrome USB controller (VID 26CE / PID 01A2)** only.
+ASUS, MSI and Gigabyte boards are recognised and named in the status line but not driven; use OpenRGB or the vendor
+software for them.
 
-| Motherboard Brand | Header Markings | Onboard Chipset | Control Channel in RGB Studio |
-| :--- | :--- | :--- | :--- |
-| **ASRock** | `ADDR_LED1`, `ADDR_LED2`, `ADDR_LED3`, `RGB_LED1` | Nuvoton NUC121 USB MCU (`0x26CE:0x01A2`) | **Direct Native USB HID** (`BoardRgb.cs`) |
-| **ASUS** | `ADD_GEN 2_1`, `ADD_GEN 2_2`, `AURA_RGB` | AURA LED Controller (USB/ITE8297) | **OpenRGB SDK Backend** (Port 6743) |
-| **MSI** | `JARGB_V2_1`, `JARGB_V2_2`, `JRGB1` | MSI Nuvoton / APM Controller | **OpenRGB SDK Backend** (Port 6743) |
-| **Gigabyte / AORUS** | `D_LED1`, `D_LED2` (5V), `LED_C1`, `LED_C2` (12V) | ITE IT8297 USB Controller | **OpenRGB SDK Backend** (Port 6743) |
+### 2.1. ASRock (Polychrome USB)
+* **Headers**: `ADDR_LED1..3` (5 V ARGB), `RGB_LED1` (12 V RGB). Plug the cooler's ARGB lead into an `ADDR_LED` header.
+* **Channels**: the controller reports which channels are installed (`0x14, 1`) and which need red/green swapped
+  (`0x14, 3`); RGB Studio reads both and writes every installed channel, then reads each one back.
+* **Polychrome** must be closed: it polls the controller and overwrites it.
+* Checked on an ASRock B850 Challenger WiFi. Other ASRock boards with the same controller ID should behave the same, untested.
 
-### 2.1. ASRock Motherboards (Native Direct USB HID)
-* **Target Platforms**: Intel Z790/Z690/B760/B660, AMD X670E/B650/X570/B550 (e.g. Steel Legend, Taichi, PG Riptide, Pro RS).
-* **Hardware Controller**: Internal Nuvoton NUC121 ARM Cortex-M0 microcontroller attached to internal USB (`VID: 0x26CE`, `PID: 0x01A2`).
-* **Pin Mapping & Channel Configuration**:
-  * `0x00`: 12V RGB Header 1 (`RGB1`)
-  * `0x02`: 5V Addressable Header 1 (`ARGB1`)
-  * `0x03`: 5V Addressable Header 2 (`ARGB2`)
-  * `0x07`: 5V Addressable Header 3 (`ARGB3`)
-  * `0x04-0x06`: Onboard heatsink / I/O shroud RGB zones
-* **Hardware Color Order (RGB vs. GRB)**:
-  * Register `0x14, 0x03` on the NUC121 reports whether a given channel requires red/green byte swapping. RGB Studio automatically queries this register and performs bitwise swapping (`swap ? red : green`).
-* **Direct Control Advantage**: RGB Studio writes directly to the HID endpoints. You **do not** need ASRock Polychrome RGB running. (In fact, Polychrome must be closed so it does not poll and overwrite the USB queue).
-
-### 2.2. ASUS Motherboards (ROG, TUF Gaming, Prime)
-* **Connection**: Plug CPU cooler fan ARGB and case strip ARGB into `ADD_GEN 2_1` or `ADD_GEN 2_2`.
-* **RGB Studio Integration**:
-  * Communication runs through the OpenRGB backend engine (`127.0.0.1:6743`).
-  * Ensure ASUS Armoury Crate / LightingService is stopped to prevent bus collision.
-
-### 2.3. MSI Motherboards (MPG, MAG, MEG, PRO)
-* **Connection**: Connect to `JARGB_V2_1` (Pinout: 5V-D-Empty-GND).
-* **RGB Studio Integration**: Controlled via OpenRGB backend. Ensure MSI Center / Mystic Light is closed.
-
-### 2.4. Gigabyte / AORUS Motherboards
-* **Connection**: Connect to `D_LED1` or `D_LED2`.
-* ⚠️ **Vintage Board Warning**: Older Gigabyte motherboards (Z370/B360 era) feature a 3-pin header with a movable jumper for 5V vs 12V selection. Always ensure the jumper is set to **5V** before connecting ARGB fans.
-* **RGB Studio Integration**: Controlled via OpenRGB backend.
+### 2.2. Other vendors (for reference)
+| Brand | Typical 5 V ARGB header | Driven by RGB Studio |
+| :--- | :--- | :--- |
+| ASUS | `ADD_GEN 2` | no |
+| MSI | `JARGB_V2` | no |
+| Gigabyte / AORUS | `D_LED1`, `D_LED2` (older boards: 5 V / 12 V jumper, set to 5 V for ARGB) | no |
 
 ---
 
@@ -88,7 +69,7 @@ Different motherboard manufacturers implement onboard lighting controllers throu
   * Fans connect to NZXT proprietary 4-pin RGB channels (or via NZXT-to-Standard ARGB adapter cables).
 * **Control Mechanism in RGB Studio**:
   * NZXT CAM runs locally.
-  * RGB Studio triggers CAM profiles with zero performance overhead using lightweight 1x1 hidden window processes (`RGB-<slug>.exe`).
+  * RGB Studio starts a small trigger exe per scene (`RGB-<slug>.exe`, an invisible 1×1 window). Profiles are created once with `scripts/setup_cam.py`.
   * When a scene switches, RGB Studio starts the trigger binary; NZXT CAM detects the game profile sync event and immediately switches its internal fan and lighting channels across Bottom, Side, and Rear arrays.
 
 ### 3.2. Powered ARGB Hubs / Splitters (SATA Powered)
@@ -111,8 +92,8 @@ Different motherboard manufacturers implement onboard lighting controllers throu
 * In typical RGB software, the two RAM sticks are sent an effect command (e.g., "Flash" or "Pulse") and then left to execute independently on their internal hardware timers.
 * Because individual quartz crystal oscillators on RAM stick PCBs have tiny manufacturing tolerances (±20 to 50 ppm), one stick runs slightly faster than the other. Within 5–10 minutes, the two RAM sticks noticeably desynchronize.
 
-### 4.3. RGB Studio's Synchronized Software Clock Solution
-* RGB Studio configures both memory sticks into **Direct Mode**.
-* A centralized high-precision software timer thread (`MemoryShow.cs`) generates unified color frames at fixed intervals (30–60 FPS).
-* Synchronous frame packets are sent simultaneously to both DIMM slots over the OpenRGB SDK client (`MemoryLighting.cs`).
-* **Result**: Dual memory sticks maintain 100% mathematical phase alignment indefinitely, with zero drift.
+### 4.3. RGB Studio's approach
+* Every stick OpenRGB lists as DRAM is put into **Direct mode**.
+* One thread (`MemoryShow.cs`) computes each frame from a single clock and sends it to all sticks, about 14 frames
+  per second while an effect moves.
+* The sticks therefore cannot drift apart. `scripts/sync_check.py` samples them to confirm it.

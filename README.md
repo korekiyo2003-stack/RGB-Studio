@@ -2,106 +2,81 @@
 
 # RGB Studio
 
-<div align="center">
+**One Windows app that switches case fans, the CPU cooler / motherboard ARGB and RAM lighting together, with 100 coordinated scenes.**
 
-**Universal PC Lighting Synchronizer & Preset Orchestrator**  
-*NZXT CAM · ASRock Polychrome USB · Dual-Channel DDR4/DDR5 RAM (OpenRGB SDK)*
+[日本語](README_JA.md) · [简体中文](README_CN.md) · [Русский](README_RU.md) · [Architecture](docs/architecture.md) · [Troubleshooting](docs/debugging_guide.md) · [Wiring](docs/hardware_wiring_guide.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Platform: Windows](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(64--bit)-lightgrey.svg)](release/)
-[![Scenes: 100 Handcrafted Presets](https://img.shields.io/badge/Scenes-100%20Presets-gradient.svg)](presets/scenes.json)
-
-[**简体中文 说明文档**](README_CN.md) • [**Русская инструкция**](README_RU.md) • [**English Manual**](README_EN.md)
-
-[**Hardware Wiring Guide**](docs/hardware_wiring_guide.md) • [**Debugging Guide**](docs/debugging_guide.md) • [**Architecture**](docs/architecture.md)
-
-</div>
+![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-lightgrey.svg)
 
 ---
 
-## Overview / 概览 / Обзор
+## What it controls, and what each part needs
 
-**RGB Studio** is a unified, lightweight, and bloat-free desktop control hub for PC enthusiasts. It bridges fragmented vendor lighting ecosystems into a single elegant interface:
-* **Chassis Fans (Bottom, Side, Rear)**: Controlled via zero-overhead process triggers hooked into **NZXT CAM**.
-* **Motherboard RGB/ARGB Headers (CPU Air/AIO Cooler, LED Shrouds)**: Low-level native USB HID protocol driving onboard microcontrollers (**ASRock Polychrome USB**, VID 26CE / PID 01A2). Other vendors (ASUS AURA, MSI Mystic Light, Gigabyte RGB Fusion) are detected and shown in the status line but are **not driven** yet; use OpenRGB for them.
-* **Dual-Channel Memory (DDR4 / DDR5)**: Synchronous high-precision software clock engine over OpenRGB SDK, eliminating dual-DIMM crystal oscillator timer drift.
-* **100 Curated Design Scenes**: Handcrafted color harmonies across 6 theme categories (Rhythm, Cool, Pink-Purple, Cyan-Green, Warm, Neutral).
-* **Real-time Animated Canvas**: Dynamic GDI+ vector chassis simulator showing per-LED wave, pulse, breathing, and chasing patterns.
+RGB Studio drives three independent subsystems. Each one is optional: the app uses what it finds and
+shows a status line for each part, so a PC with only some of this hardware still works.
 
-```
-       5V 3-Pin ARGB (Addressable)              12V 4-Pin RGB (Non-Addressable)
-      ┌───┬───┬───┬───┐                              ┌───┬───┬───┬───┐
-      │ 1 │ 2 │ X │ 3 │                              │ 1 │ 2 │ 3 │ 4 │
-      └───┴───┴───┴───┘                              └───┴───┴───┴───┘
-     +5V  DATA KEY GND                              +12V  G   R   B
-    (Pin 3 physically blocked)                    (All LEDs same color)
-```
+| Part | How RGB Studio drives it | Needs |
+| :--- | :--- | :--- |
+| **CPU cooler / motherboard ARGB headers** | Raw 65-byte USB HID reports to the ASRock Polychrome controller, then reads every channel back to verify | ASRock board with controller **VID 26CE / PID 01A2**; `hidapi-hotplug.dll` from an OpenRGB install; ASRock Polychrome closed |
+| **RAM sticks** (DDR4 / DDR5) | Puts every stick in Direct mode and streams frames from one clock thread over the OpenRGB SDK, so the sticks never drift apart | OpenRGB running as SDK server on `127.0.0.1:6743`; any number of sticks of any brand OpenRGB lists as DRAM |
+| **Case fans on an NZXT hub** | Starts a tiny trigger exe; NZXT CAM's Profile Sync switches to the matching profile; RGB Studio confirms it in CAM's log | NZXT CAM, plus one-time profile setup with `scripts/setup_cam.py` |
+
+Other motherboard vendors (ASUS, MSI, Gigabyte) are detected and named in the status line but **not driven**.
+
+**Tested on:** ASRock B850 Challenger WiFi, NZXT Control Hub (3 zones), 2 × ADATA DDR5 (ENE, 8 LEDs each).
+The paths without CAM, other stick counts and other DRAM brands are implemented and compile, but have not
+been run on other hardware yet. Reports welcome.
 
 ---
 
-## Quickstart / 快速开始 / Быстрый старт
+## Setup
 
-### Ready-to-Run (No Installation Required)
-Precompiled binaries and scene triggers are available in the [`release/`](release/) folder:
-1. Ensure .NET Framework 4.5+ is enabled (built-in on Windows 10/11).
-2. Download or clone this repository.
-3. Open `release/` and launch `RGB Studio.exe`.
+1. **Run** `release/RGB Studio.exe` (.NET Framework 4.5+, built into Windows 10/11). No installer.
+2. **Cooler and RAM (optional):** install [OpenRGB](https://openrgb.org) 1.0+, then from an elevated PowerShell:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File scripts\register_openrgb_server.ps1 -OpenRGB "C:\Program Files\OpenRGB\OpenRGB.exe"
+   ```
+   This starts OpenRGB as a local SDK server at every logon. RGB Studio looks for `hidapi-hotplug.dll` next to
+   itself, in `%OPENRGB_DIR%`, `C:\Program Files\OpenRGB` and `%LOCALAPPDATA%\Programs\OpenRGB`.
+3. **Case fans via NZXT CAM (optional):** follow the 3 steps at the top of
+   [`scripts/setup_cam.py`](scripts/setup_cam.py) (make one template profile in CAM, close CAM), then:
+   ```powershell
+   python scripts\setup_cam.py --list-channels   # which channel ids your hub has
+   python scripts\setup_cam.py --channels 0,1,4  # dry run
+   python scripts\setup_cam.py --channels 0,1,4 --write
+   ```
+   It backs up CAM's files, adds one profile per scene and writes `release/scenes.json` with their ids.
 
-### Build from Source
-RGB Studio uses standard .NET C# compiler with no external toolchains:
+Without step 3, scenes change only the cooler and RAM; the fans are left alone. If CAM does not confirm a
+fan switch within 25 s, the cooler and RAM are still applied and a warning says why.
+
+## Build from source
+
 ```cmd
 build.bat
 ```
-The compiled standalone binary is placed in `release/RGB Studio.exe`.
+Uses the C# 5 compiler that ships with .NET Framework (`csc.exe`), no SDK needed. Output: `release/RGB Studio.exe`.
+`python scripts/build_triggers.py` rebuilds the trigger exes.
 
----
+## How the hard parts work
 
-## Deep Dive: Low-Level Hardware Protocol & Engineering Notes
+* **Verified writes.** After each `0x10` write to a cooler channel, a `0x11` read must return the same mode, colour
+  and speed, otherwise the status line says "读回不一致" (read-back mismatch). Replies left over from earlier
+  requests are skipped by matching the channel number.
+* **Conflict detection.** ASRock Polychrome polls the same controller and overwrites it; RGB Studio refuses to
+  write while `AsrPolychromeRGB.exe` runs and tells you to close it.
+* **RAM in sync.** The ENE chips on each stick keep their own time, so built-in effects drift apart within
+  minutes. RGB Studio keeps the sticks in Direct mode and sends every frame (about 14 per second) from one
+  clock, re-asserting Direct mode every 20 s because the flag is lost after sleep.
+* **Colour.** Scene colours are sRGB picks; LEDs are linear. A gamma of 2.2 relative to the strongest channel
+  keeps pastels from washing out to white.
 
-### 1. ASRock Polychrome USB HID Protocol (VID 0x26CE / PID 0x01A2)
-RGB Studio communicates directly with the onboard Nuvoton/ASRock USB microcontroller over a 65-byte raw USB HID report descriptor rather than relying on high-overhead SDK wrappers:
+## Acknowledgements
 
-```text
-+----------+-------------------------------------------------------------+
-| Offset   | Field Description & Protocol Semantics                     |
-+----------+-------------------------------------------------------------+
-| Byte 0   | 0x00: USB HID Report ID                                    |
-| Byte 1   | Command: 0x10 = Set Zone, 0x11 = Read Zone, 0x14 = Header   |
-| Byte 2   | Sub-command / Reserved (0x00)                               |
-| Byte 3   | Target Zone Index (0x00 - 0x07: ARGB Header, RGB, PCH, IO) |
-| Byte 4   | Mode: 0x01 = Static, 0x02 = Breathing                      |
-| Byte 5   | Primary Color Component (G or R depending on GRB/RGB swap)  |
-| Byte 6   | Secondary Color Component (R or G)                          |
-| Byte 7   | Blue Color Component (B)                                    |
-| Byte 8   | Speed / Animation Rate (0-255, default 128)                 |
-| Byte 9   | Brightness Level (0-255, fixed to 255)                      |
-| Byte 10+ | Zero padding to 65 bytes                                    |
-+----------+-------------------------------------------------------------+
-```
-
-### 2. Defensive Engineering & Bus Integrity
-* **FIFO Drain & Residual Frame Skipping**: USB HID read buffers frequently contain stale responses from previous transactions. A loop (up to 6 iterations with 450ms timeouts) drains mismatched packets until the header `0xA6` with matching target address is acknowledged.
-* **Process Conflict Quarantine**: ASRock's official `AsrPolychromeRGB.exe` daemon constantly polls and overrides the controller state, polluting the shared HID read queue. RGB Studio proactively checks active process tables and halts writes to prevent bus contention.
-* **Post-Write Readback Verification**: After writing zone configurations via `0x10`, RGB Studio executes a roundtrip `0x11` query to verify target bytes in hardware registers (`state[5..7] == target_rgb`), ensuring zero packet drops under high I/O load.
-
-### 3. Why Not Just Rely on OpenRGB?
-While OpenRGB offers broad device support, its standard driver model lacks:
-1. **Host process concurrency guards**: OpenRGB collides with running vendor daemons like `AsrPolychromeRGB.exe`, causing queue corruption.
-2. **Deterministic write verification**: It assumes USB HID writes always succeed, leaving dropped frames unhandled.
-3. **Dual-Channel DRAM Clock Drift**: Dual DIMMs have independent crystal oscillators; asynchronous updates cause lighting phase drift within minutes. RGB Studio's `MemoryShow.cs` runs a master software clock with continuous phase resynchronization to keep both sticks aligned.
-
----
-
-## Documentation Links
-
-* [**中文详细说明书 (README_CN.md)**](README_CN.md): 包含功能演示、接口对比、各主板品牌接线方案与排错指南。
-* [**Подробное руководство на русском (README_RU.md)**](README_RU.md): Спецификации разъемов, схемы материнских плат, настройка ОЗУ и устранение неполадок.
-* [**Detailed English Manual (README_EN.md)**](README_EN.md): Full technical operation manual and troubleshooting procedures.
-* [**Hardware Wiring Guide (docs/hardware_wiring_guide.md)**](docs/hardware_wiring_guide.md): 5V ARGB vs 12V RGB electrical ratings, current limits, SATA-powered hub topologies.
-* [**Debugging Guide (docs/debugging_guide.md)**](docs/debugging_guide.md): HID lock diagnostics, CAM renderer log analysis, and SMBus memory clock verification.
-
----
+The ASRock Polychrome USB protocol and the SDK protocol come from [OpenRGB](https://gitlab.com/CalcProgrammer1/OpenRGB)
+(GPL-2.0). RGB Studio contains no OpenRGB code; it talks to an OpenRGB install over its documented SDK.
 
 ## License
 
-Licensed under the [MIT License](LICENSE).
+[MIT](LICENSE)

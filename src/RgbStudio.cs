@@ -57,6 +57,11 @@ internal sealed class Studio : Form
     private static readonly string CamLog = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "NZXT CAM", "logs", "renderer.log");
     private static readonly string SettingsPath = Path.Combine(DirectoryPath, "preferences.json");
+    // Without NZXT CAM (or before scripts/setup_cam.py has created the scene profiles) fans are skipped
+    // and the cooler and memory are applied directly.
+    private static readonly bool CamInstalled = Directory.Exists(Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "NZXT CAM", "DataStorage"));
+    private bool fansViaCam;
     private TimeSpan Period = TimeSpan.FromMinutes(30);
     private readonly List<string> recent = new List<string>();
     private Label ideaLabel;
@@ -528,6 +533,13 @@ internal sealed class Studio : Form
     {
         if (pending != null || scene == active) return;
         ShowScene(scene);
+        if (!CamInstalled || string.IsNullOrEmpty(scene.profileId) ||
+            !File.Exists(Path.Combine(DirectoryPath, "Triggers", "RGB-" + scene.slug + ".exe")))
+        {
+            ApplyWithoutCam(scene, null);
+            UpdateLabels();
+            return;
+        }
         if (Process.GetProcessesByName("NZXT CAM").Length == 0)
         {
             error = "等待 NZXT CAM 启动。";
@@ -580,21 +592,35 @@ internal sealed class Studio : Form
                 pendingTrigger = null;
                 pendingStop = null;
                 pending = null;
+                fansViaCam = true;
                 ApplyBoard(active);
                 next = DateTime.UtcNow.Add(Period);
             }
             else if (DateTime.UtcNow - sent > TimeSpan.FromSeconds(25))
             {
                 Stop(ref pendingTrigger, ref pendingStop);
-                error = "CAM 未确认「" + pending.name + "」。可在 CAM → Profile Sync 检查绑定。";
+                Scene failed = pending;
                 pending = null;
-                next = DateTime.UtcNow.AddSeconds(45);
+                // Fans stay on the previous CAM profile, but the cooler and memory still change.
+                ApplyWithoutCam(failed, "CAM 未确认「" + failed.name + "」的风扇灯效，散热器和内存已照常应用。可运行 scripts/setup_cam.py 或在 CAM → Profile Sync 检查绑定。");
             }
         }
         else if (running && DateTime.UtcNow >= next) Shuffle();
         else if (!running && wanted != null && active == null && DateTime.UtcNow >= next) Apply(wanted);
         if (active != null) wanted = null;
         UpdateLabels();
+    }
+
+    private void ApplyWithoutCam(Scene scene, string warning)
+    {
+        // The previous trigger keeps running, so CAM's fans stay on the last scene instead of its default.
+        active = scene;
+        fansViaCam = false;
+        recent.Remove(scene.slug);
+        recent.Add(scene.slug);
+        error = warning;
+        ApplyBoard(scene);
+        next = DateTime.UtcNow.Add(Period);
     }
 
     private bool CamApplied(string id)
@@ -633,7 +659,7 @@ internal sealed class Studio : Form
         }
         else if (active != null)
         {
-            status.Text = "✓ CAM 已应用  " + active.name;
+            status.Text = (fansViaCam ? "✓ 已应用（含 CAM 风扇）  " : "✓ 已应用  ") + active.name;
             status.ForeColor = Accent;
         }
         else
